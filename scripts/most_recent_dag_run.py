@@ -10,7 +10,6 @@ def cli_args():
         "required": True,
         "help": "The DAG ID to evaluate.",
     }
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--dag", **arg)
     return parser.parse_args()
@@ -19,10 +18,8 @@ def cli_args():
 def most_recent_success(dag_runs):
     """ return the execution date of the most recent successful dag run """
     successes = [run for run in dag_runs if run["state"] == "success"]
-
     if not successes:
         return None
-
     # sorting in-place is slightly more efficient
     # see: https://docs.python.org/3/howto/sorting.html
     # we're handling ISO-8601 timestamps so we can just evaluate them as strings
@@ -38,8 +35,12 @@ def main():
     url = f"https://airflow.austinmobility.io/api/experimental/dags/{args.dag}/dag_runs"
     res = requests.get(url)
     res.raise_for_status()
-    iso_date = most_recent_success(res.json())
-    return arrow.get(iso_date).timestamp
+    last_successful_run_date = most_recent_success(res.json())
+    return (
+        arrow.get(last_successful_run_date).timestamp
+        if last_successful_run_date
+        else None
+    )
 
 
 if __name__ == "__main__":
