@@ -19,13 +19,13 @@ These utilities are designed to:
 
 ### S3 Data Store
 
-We manage one S3 bucket per Knack application per environment, with a subdirectory for each container. Each record is stored as JSON a file with its `id` serving as the filename. As such, each store follows the naming pattern `s3://atd-knack-<app-name>-<environment>/<container ID>`.
+Data is stored in an S3 bucket (`s3://atd-knack-services`), with one subdirectory per Knack application per environment. Each app subdirectory contains a subdirectory for each container, which holds invdividual records stored as JSON a file with its `id` serving as the filename. As such, each store follows the naming pattern `s3://atd-knack-servies/<app-name>-<environment>/<container ID>`.
 
 Application metadata is also stored as a JSON file at the root of each S3 bucket.
 
 ```
-. s3://
-|- atd-knack-data-tracker-prod
+. s3://atd-knack-services
+|- data-tracker-prod
 |   |-- 2x22pl1f7a63815efqx33p90.json   #  app metadata
 |   |-- view_1
 |       |-- 5f31673f7a63820015ef4c85.json

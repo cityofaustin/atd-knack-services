@@ -1,4 +1,0 @@
-boto3>=1.14
-knackpy>=1.0
-arrow>=0.15
-sodapy>=2.1
