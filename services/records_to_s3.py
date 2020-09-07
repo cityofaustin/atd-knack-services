@@ -58,6 +58,9 @@ def main():
         app_id=app_id, api_key=api_key, filters=filters, **kwargs,
     )
 
+    if not records:
+        return f"No records to process."
+
     record_packages = build_record_packages(
         records, BUCKET_NAME, args.app_name, args.env, args.container
     )
