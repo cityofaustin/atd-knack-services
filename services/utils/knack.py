@@ -12,9 +12,10 @@ def set_env(
     var_names=["app_id", "api_key"],
 ):
     # check if we're already good to go
+    print(os.environ)
     if all([name in os.environ for name in var_names]):
         return
-
+    
     # attempt to load from ~/.knack/config
     home = str(pathlib.Path.home())
     path = os.path.join(home, config_path)
@@ -33,6 +34,7 @@ def set_env(
 
         except (KeyError, json.decoder.JSONDecodeError):
             raise IOError(f"Invalid Knack environment file: {path}")
+    breakpoint()
 
 
 def date_filter_on_or_after(timestamp, date_field):
