@@ -4,6 +4,7 @@
 import argparse
 import io
 import json
+import logging
 import os
 
 import arrow
@@ -42,6 +43,8 @@ def container_kwargs(container, config, obj=None, scene=None, view=None):
 
 def main():
     args = utils.args.cli_args(["app-name", "container", "env", "date"])
+    logging.info(args)
+    
     utils.knack.set_env(args.app_name, args.env)
     app_id = os.getenv("app_id")
     api_key = os.getenv("api_key")
@@ -59,7 +62,8 @@ def main():
     )
 
     if not records:
-        return f"No records to process."
+        logging.info("No records to process.")
+        return
 
     record_packages = build_record_packages(
         records, BUCKET_NAME, args.app_name, args.env, args.container
@@ -67,7 +71,8 @@ def main():
 
     utils.s3.upload(record_packages)
 
-    return f"Records uploaded: {len(record_packages)}"
+    logging.info(f"Records uploaded: {len(record_packages)}")
+    return
 
 
 if __name__ == "__main__":
