@@ -56,6 +56,9 @@ def main():
 
     modified_date_field = config["modified_date_field"]
     filters = utils.knack.date_filter_on_or_after(args.date, modified_date_field)
+    
+    logging.info(filters)
+
     kwargs = container_kwargs(args.container, config)
 
     records = knackpy.api.get(
