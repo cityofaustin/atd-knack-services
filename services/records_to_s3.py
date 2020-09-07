@@ -58,13 +58,16 @@ def main():
         app_id=app_id, api_key=api_key, filters=filters, **kwargs,
     )
 
+    if not records:
+        return f"No records to process."
+
     record_packages = build_record_packages(
         records, BUCKET_NAME, args.app_name, args.env, args.container
     )
 
-    results = utils.s3.upload(record_packages)
+    utils.s3.upload(record_packages)
 
-    return results
+    return f"Records uploaded: {len(record_packages)}"
 
 
 if __name__ == "__main__":

@@ -5,6 +5,8 @@ from multiprocessing.dummy import Pool
 import arrow
 import boto3
 
+def handle_results(results):
+    return results
 
 def get_obj_data(obj):
     return obj.get()["Body"].read().decode()
@@ -107,4 +109,8 @@ def upload(record_packages: list, processes: int = 8):
 
     # todo: handle responses. each should be None. otherwise it's an error?
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html
+    handle_results(responses)
     return responses
+
+
+
