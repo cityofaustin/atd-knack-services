@@ -76,5 +76,6 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     main()
