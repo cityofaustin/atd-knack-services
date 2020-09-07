@@ -6,6 +6,7 @@ import io
 import json
 import logging
 import os
+import sys
 
 import arrow
 import knackpy
@@ -76,6 +77,6 @@ def main():
 
 
 if __name__ == "__main__":
-    import sys
+    # airflow needs this to see logs from the DockerOperator
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     main()
