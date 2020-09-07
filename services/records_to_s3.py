@@ -44,7 +44,7 @@ def container_kwargs(container, config, obj=None, scene=None, view=None):
 def main():
     args = utils.args.cli_args(["app-name", "container", "env", "date"])
     logging.info(args)
-    
+
     utils.knack.set_env(args.app_name, args.env)
     app_id = os.getenv("app_id")
     api_key = os.getenv("api_key")
@@ -76,4 +76,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     main()
