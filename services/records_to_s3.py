@@ -62,9 +62,9 @@ def main():
         records, BUCKET_NAME, args.app_name, args.env, args.container
     )
 
-    results = utils.s3.upload(record_packages)
+    utils.s3.upload(record_packages)
 
-    return results
+    return f"Records uploaded: {len(record_packages)}"
 
 
 if __name__ == "__main__":
