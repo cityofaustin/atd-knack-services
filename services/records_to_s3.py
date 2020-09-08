@@ -11,7 +11,7 @@ import sys
 import arrow
 import knackpy
 
-from config.knack import CONFIG
+from config.knack import CONFIG, APP_TIMEZONE
 from config.s3 import BUCKET_NAME
 import utils
 
@@ -55,8 +55,10 @@ def main():
         raise ValueError(f"No config entry found for {args.app_name}, {args.container}")
 
     modified_date_field = config["modified_date_field"]
-    filters = utils.knack.date_filter_on_or_after(args.date, modified_date_field)
-    
+    filters = utils.knack.date_filter_on_or_after(
+        args.date, modified_date_field, tzinfo=APP_TIMEZONE
+    )
+
     logging.info(filters)
 
     kwargs = container_kwargs(args.container, config)
