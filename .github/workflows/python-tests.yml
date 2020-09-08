@@ -15,7 +15,6 @@ on:
 
 jobs:
   build_3_8:
-    needs: build_3_7
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
