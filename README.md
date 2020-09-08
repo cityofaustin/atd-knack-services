@@ -26,7 +26,7 @@ Application metadata is also stored as a JSON file at the root of each S3 bucket
 ```
 . s3://atd-knack-services
 |- data-tracker-prod
-|   |-- 2x22pl1f7a63815efqx33p90.json   #  app metadata
+|   |-- metadata.json
 |   |-- view_1
 |       |-- 5f31673f7a63820015ef4c85.json
 |       |-- 5b34fbc85295dx37f1402543.json
@@ -34,95 +34,74 @@ Application metadata is also stored as a JSON file at the root of each S3 bucket
 |       |...
 ```
 
-## Scripts (`/scripts`)
-
-### Get the most recent successful DAG run
-
-`most_recent_dag_run.py` is meant to be run as an initial Airflow task which fetches the most recent successful run of itself. The date can then be passed to subsequent tasks as a filter parameter to support incremental record processing.
-
-```shell
-$ python most_recent_dag_run.py --dag atd_signals_socrata  
-```
-
-#### CLI arguments
-
-- `--dag` (`str`, required): the DAG ID of DAG run to be fetched.
-
+## Services (`/services`)
 
 ### Load App Metadata to S3
 
-Use `upload_metadata.py` to load an application's metadata to S3.
+Use `metadata_to_s3.py` to load an application's metadata to S3.
 
 ```shell
-$ python upload_metaddata.py \
+$ python metadata_to_s3.py \
     --app-name data-tracker \
     --env prod \
 ```
 
 #### CLI arguments
 
-- `--app-name` (`str`, required): the name of the source Knack application
-- `--env` (`str`, required): The application environment. Must be `prod` or `dev`.
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 
 ### Load Knack Records to S3
 
-Use `knack_container_to_s3.py` to incrementally load data from a Knack container (an object or view) to an S3 bucket.
+Use `records_to_S3.py` to incrementally load data from a Knack container (an object or view) to an S3 bucket.
 
 ```shell
-$ python knack_container_to_s3.py \
-    --app-name data-tracker \
-    --container view_197 \
-    --env prod \
-    --date 1598387119 \
+$ python records_to_S3.py \
+    -a data-tracker \
+    -c view_197 \
+    -e prod \
+    -d "2020-09-08T09:21:08-05:00"
 ```
 
 ### Publish Records to the Open Data Portal
 
-Use `upsert_knack_container_to_socrata.py` to publish a Knack container to the Open Data Portal (aka, Socrata).
+Use `records_to_socrata.py` to publish a Knack container to the Open Data Portal (aka, Socrata).
 
 ```shell
-$ python upsert_knack_container_to_socrata.py \
-    --app-name data-tracker \
-    --container view_197 \
-    --env prod \
-    --date 1598387119 \
+$ python records_to_socrata.py \
+    -a data-tracker \
+    -c view_197 \
+    -e prod \
+    -d "2020-09-08T09:21:08-05:00"
 ```
 
 #### CLI arguments
 
-- `--app-name` (`str`, required): the name of the source Knack application
-- `--container` (`str`, required): the name of the object or view key of the source container
-- `--env` (`str`, required): The application environment. Must be `prod` or `dev`.
-- `--date` (`int`, required): a POSIX timestamp. only records which were modified at or after this date will be processed.
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the name of the object or view key of the source container
+- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
+- `--date, -d` (`str`, required): an ISO-8601-compliant date string with timezone. only records which were modified at or after this date will be processed.
 
-## Services (`/services`)
+## Utils (`/services/utils`)
 
-The services package contains utilities for fetching and pushing data between Knack applications and AWS S3.
+The package contains utilities for fetching and pushing data between Knack applications and AWS S3.
 
-It is designed as a free-standing Python package can be installed with `pip`:
-
-```shell
-$ pip install atd-knack-services
-```
-
-and imported as `services`:
-
-```python
-import services
-```
-
-### `services.s3.upload`
+### `utils.s3.upload`
 
 Multi-threaded uploading of file-like objects to S3.
 
-### `services.s3.download`
+### `utils.s3.download_many`
 
 Multi-threaded downloading of file objects from S3.
+
+### `utils.s3.download_one`
+
+Download a single file from S3.
 
 ## How To
 
 - Create bucket(s)
-- Add Knack app credentials to auth configuration file
+- Configure auth
 - Add container configuration file to /services/config
 - Create DAGs
 
