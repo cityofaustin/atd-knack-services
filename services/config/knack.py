@@ -1,3 +1,9 @@
+# Yes, knackpy.App handles TZ settings automatically by fetching it from metadata
+# but some scripts may use the lower-level knackpy.api functions, which do not access
+# app metadata, but *do* need to query Knack by date, and thus need to know the app's
+# timezone. You'll probably never need to change this setting.
+APP_TIMEZONE = "US/Central"
+
 CONFIG = {
     "data-tracker": {
         "object_11": {
