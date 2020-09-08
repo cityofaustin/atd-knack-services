@@ -19,19 +19,20 @@ These utilities are designed to:
 
 ### S3 Data Store
 
-Data is stored in an S3 bucket (`s3://atd-knack-services`), with one subdirectory per Knack application per environment. Each app subdirectory contains a subdirectory for each container, which holds invdividual records stored as JSON a file with its `id` serving as the filename. As such, each store follows the naming pattern `s3://atd-knack-servies/<app-name>-<environment>/<container ID>`.
+Data is stored in an S3 bucket (`s3://atd-knack-services`), with one subdirectory per Knack application per environment. Each app subdirectory contains a subdirectory for each container, which holds invdividual records stored as JSON a file with its `id` serving as the filename. As such, each store follows the naming pattern `s3://atd-knack-services/<environment>/<app-name>/<container-id>`.
 
 Application metadata is also stored as a JSON file at the root of each S3 bucket.
 
 ```
 . s3://atd-knack-services
-|- data-tracker-prod
-|   |-- metadata.json
-|   |-- view_1
-|       |-- 5f31673f7a63820015ef4c85.json
-|       |-- 5b34fbc85295dx37f1402543.json
-|       |-- 5b34fbc85295de37y1402337.json
-|       |...
+|-- prod
+|   |-- data-tracker
+|       |-- metadata.json
+|       |-- view_1
+|           |-- 5f31673f7a63820015ef4c85.json
+|           |-- 5b34fbc85295dx37f1402543.json
+|           |-- 5b34fbc85295de37y1402337.json
+|           |...
 ```
 
 ## Services (`/services`)
@@ -58,7 +59,7 @@ Use `records_to_S3.py` to incrementally load data from a Knack container (an obj
 ```shell
 $ python records_to_S3.py \
     -a data-tracker \
-    -c view_197 \
+    -c view_1 \
     -e prod \
     -d "2020-09-08T09:21:08-05:00"
 ```
@@ -70,7 +71,7 @@ Use `records_to_socrata.py` to publish a Knack container to the Open Data Portal
 ```shell
 $ python records_to_socrata.py \
     -a data-tracker \
-    -c view_197 \
+    -c view_1 \
     -e prod \
     -d "2020-09-08T09:21:08-05:00"
 ```
