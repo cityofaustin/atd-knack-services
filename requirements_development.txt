@@ -1,0 +1,8 @@
+arrow==0.15.*
+boto3==1.14.*
+knackpy==1.0.*
+sodapy==2.1.*
+# -- packages for test suite --
+black
+flake8==3.*
+pytest==6.0.*
