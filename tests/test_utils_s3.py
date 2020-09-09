@@ -50,7 +50,7 @@ def test_download_many(record_data):
     assert data[0] == record_data
 
 
-def test_download_many_date_filter_1(record_data):
+def test_filter_by_date_future(record_data):
     """Query S3 for records modified 1 hour from now"""
     resource = boto3.resource("s3")
     bucket = resource.Bucket(BUCKET_NAME)
@@ -60,7 +60,7 @@ def test_download_many_date_filter_1(record_data):
     assert len(filtered_objs) == 0
 
 
-def test_download_many_date_filter_1(record_data):
+def filter_by_date_past(record_data):
     """Query S3 for records modified 1 hour ago"""
     resource = boto3.resource("s3")
     bucket = resource.Bucket(BUCKET_NAME)
