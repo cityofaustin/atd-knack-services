@@ -3,7 +3,6 @@
 """ upload knack metadata to S3. metadata is deposited at
 's3://{bucket-name}/{app_name}-{env}/{app_id}.json'
 """
-import argparse
 import io
 import json
 import os

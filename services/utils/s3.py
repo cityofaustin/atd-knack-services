@@ -5,8 +5,11 @@ from multiprocessing.dummy import Pool
 import arrow
 import boto3
 
+
 def handle_results(results):
+    # TODO
     return results
+
 
 def get_obj_data(obj):
     return obj.get()["Body"].read().decode()
@@ -19,7 +22,7 @@ def filter_by_date(objs, date):
 
 def download_many(*, bucket_name, prefix, date_filter=None, as_dicts=True, processes=8):
     """ Multi-threaded downloading of files from a folder in an S3 bucket.
- 
+
     Args:
         bucket_name (str): The S3 bucket name from which files will be downloaded
         prefix (str): The bucket subdirectory from which files will be downloaded
@@ -111,6 +114,3 @@ def upload(record_packages: list, processes: int = 8):
     # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html
     handle_results(responses)
     return responses
-
-
-
