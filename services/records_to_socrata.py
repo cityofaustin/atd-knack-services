@@ -1,11 +1,7 @@
 #!/usr/bin/env python
-
-import argparse
-import json
 import os
 
 import knackpy
-import sodapy
 
 from config.knack import CONFIG
 from config.s3 import BUCKET_NAME

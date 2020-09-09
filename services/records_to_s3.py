@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 
 """ Download Knack records and upload to S3 """
-import argparse
 import io
 import json
 import logging
 import os
 import sys
 
-import arrow
 import knackpy
 
 from config.knack import CONFIG, APP_TIMEZONE
 from config.s3 import BUCKET_NAME
 import utils
 
-# e.g. python knack_to_s3.py -c object_11 -d 0 -e prod
+
 def fileobj(record):
     return io.BytesIO(json.dumps(record).encode())
 
