@@ -34,7 +34,7 @@ Application metadata is also stored as a JSON file at the root of each S3 bucket
 Note that the S3 bucket name must be defined in `services/config/s3.py`.
 
 ```python
-BUCKET_NAME = "atd-knack-services
+BUCKET_NAME = "atd-knack-services"
 ```
 
 ## App Names
@@ -52,23 +52,23 @@ Whenever you see a variable or CLI argument named `app_name`, we're referring to
 
 You have two options for providing access keys to these modules:
 
-- Explictly environmental variables in your Python environment
+- Explictly set environmental variables in your Python environment
 - Use configuration files stored outside of this repository.
 
-This second approach is recommended, because it simiplifies the management of Knack credentials, which require a different APP ID and API key for each app.
+This second approach is recommended, because it simiplifies the management of Knack credentials, which require a different app ID and API key for each app.
 
 The required environmental variables for using these scripts are:
 
-- `AWS_ACCESS_KEY_ID`: An AWS access key with permissions to access the S3 bucket
+- `AWS_ACCESS_KEY_ID`: An AWS access key with read/write permissions on the S3 bucket
 - `AWS_SECRET_ACCESS_KEY`: The AWS access key token
 - `APP_ID`: The Knack App ID of the application you need to access
 - `API_KEY`: The Knack API key of the application you need to access
-- `SOCRATA_USERNAME`: The Socrata user name that has access to the destination Socrata dataset
+- `SOCRATA_USERNAME`: A Socrata user name that has access to the destination Socrata dataset
 - `SOCRATA_PASSWORD`: The Socrata account password
-- `AGOL_USERNAME`: The ArcGIS Online user name that has access to the destination AGOL service
+- `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service
 - `AGOL_PASSWORD`: The ArcGIS Online account password
 
-If you choose to store these env vars locally, you must create two files:
+If you choose to store these env vars in local config files, you must create two files:
 
 1. An AWS credentials file. Follow AWS's `boto3` library documentation to create this file.
 
@@ -87,7 +87,7 @@ The configuration file must be structured as follows:
                 "api_key": <str: api_key>,
             }
         },
-        <...>
+        < ... additional apps >
     },
     "socrata": {
         "username": <str: username>,
@@ -102,11 +102,8 @@ The configuration file must be structured as follows:
 
 ### Knack (`services/config/knack.py`)
 
-### Knack
+Each Knack container which will be processed must have configuration parameters defined in `services/config/knack.py`, as follows:
 
-Each Knack container must have configuration parameters defined in `services/config/knack.py`.
-
-Each entry in the config file follows the pattern:
 
 ```json
 CONFIG = {
@@ -116,16 +113,16 @@ CONFIG = {
             "modified_date_field_id": <str: knack_field_id>,
             < additional optional config key/vals >
         },
-        < additional container entries as needed >
+        < ...additional container entries as needed >
     },
-    < additional app entries as needed>
+    < ...additional app entries as needed >
 }
 ```
 
 - `app_name` (`str`): The Knack application name. See note about application names, above.
 - `container_id` (`str`): a Knack object or view key (e.g., `object_11`) which holds the records to be processed.
 - `scene_id` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
-- `description` (`str`): a description of what records this container holds. This is optional and used merely for documentation purposes. Use it!
+- `description` (`str`): a description of what kind of record this container holds. This is optional and used merely for documentation purposes. Use it!
 - `modified_date_field_id`: A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
 - `socrata_resource_id` (`str`): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
 - `location_fields` (`list`): A list of knack field keys which will be translated to Socrata "location" field types. This ensures that these fields will be transformed to the Socrata location field structure.
