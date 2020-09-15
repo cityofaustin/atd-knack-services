@@ -1,6 +1,6 @@
 # atd-knack-services
 
-ATD Knack Services is comprised of a Python library (`/services`) and scripts (`/scripts`) which automate the flow of data from ATD's Knack applications to downstream systems.
+ATD Knack Services is a set of pyhton modules which automate the flow of data from ATD's Knack applications to downstream systems.
 
 These utilities are designed to:
 
@@ -78,16 +78,16 @@ This must be a JSON file named `credentials` located within a directory called `
 
 The configuration file must be structured as follows:
 
-```json
+```python
 {
     "knack": {
-        <str: app-name>: {  # <-- see note about app-names, above
-            <str: env>: {
+        <str: app_name>: {  # <-- see note about app-names, above
+            <str: environment>: {   # 'prod' or 'dev'
                 "app_id": <str: app_id>,
-                "api_key": <str: api_key>,
+                "api_key": <str: api_key>
             }
         },
-        < ... additional apps >
+        # ...repeat w/ more apps
     },
     "socrata": {
         "username": <str: username>,
@@ -104,8 +104,7 @@ The configuration file must be structured as follows:
 
 Each Knack container which will be processed must have configuration parameters defined in `services/config/knack.py`, as follows:
 
-
-```json
+```python
 CONFIG = {
     <str: app_name>: {
         <str: continer_id>: {
