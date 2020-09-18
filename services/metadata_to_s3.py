@@ -24,7 +24,9 @@ def main():
 
     with io.BytesIO(payload) as f:
         response = client.upload_fileobj(
-            f, f"{BUCKET_NAME}", f"{args.env}/{args.app_name}/metadata.json",
+            f,
+            f"{BUCKET_NAME}",
+            f"{args.env}/{args.app_name}/metadata.json",
         )
 
     if response:
