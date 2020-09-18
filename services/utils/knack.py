@@ -6,13 +6,13 @@ import arrow
 
 
 def set_env(
-    app_name, env, config_path=".knack/config", var_names=["app_id", "api_key"],
+    app_name, env, config_path=".knack/credentials", var_names=["app_id", "api_key"],
 ):
     # check if we're already good to go
     if all([name in os.environ for name in var_names]):
         return
 
-    # attempt to load from ~/.knack/config
+    # attempt to load from ~/.knack/credentials
     home = str(pathlib.Path.home())
     path = os.path.join(home, config_path)
 
