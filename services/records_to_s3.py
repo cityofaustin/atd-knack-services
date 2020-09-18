@@ -62,7 +62,10 @@ def main():
     kwargs = container_kwargs(args.container, config)
 
     records = knackpy.api.get(
-        app_id=app_id, api_key=api_key, filters=filters, **kwargs,
+        app_id=app_id,
+        api_key=api_key,
+        filters=filters,
+        **kwargs,
     )
 
     if not records:
