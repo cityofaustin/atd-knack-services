@@ -21,7 +21,7 @@ def filter_by_date(objs, date):
 
 
 def download_many(*, bucket_name, prefix, date_filter=None, as_dicts=True, processes=8):
-    """ Multi-threaded downloading of files from a folder in an S3 bucket.
+    """Multi-threaded downloading of files from a folder in an S3 bucket.
 
     Args:
         bucket_name (str): The S3 bucket name from which files will be downloaded
@@ -95,12 +95,14 @@ def _upload(record_package):
     session = boto3.session.Session()
     client = session.client("s3")
     return client.upload_fileobj(
-        record_package.fileobj, record_package.bucket_name, record_package.file_name,
+        record_package.fileobj,
+        record_package.bucket_name,
+        record_package.file_name,
     )
 
 
 def upload(record_packages: list, processes: int = 8):
-    """ boto3 wrapper to upload files to S3 via multithreading.
+    """boto3 wrapper to upload files to S3 via multithreading.
 
     Args:
         - record_packages (list): A list of RecordPackage class instances.
