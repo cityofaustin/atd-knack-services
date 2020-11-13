@@ -24,9 +24,9 @@ ARG_DEFS = {
     "date": {
         "flag": "-d",
         "type": str,
-        "required": True,
+        "required": False,
         "help": "An ISO 8601-compliant date string which will be used to query records",
-    },
+    }
 }
 
 
