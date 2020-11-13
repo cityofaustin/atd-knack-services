@@ -10,12 +10,20 @@ def socrata_formatter(value):
     return f"({lat}, {lon})" if lat and lon else None
 
 
-def upsert(*, resource_id, payload, host="data.austintexas.gov"):
+def publish(*, method, resource_id, payload, host="data.austintexas.gov"):
     """Just a sodapy wrapper"""
+    SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
+    SOCRATA_API_KEY_ID = os.getenv("SOCRATA_API_KEY_ID")
+    SOCRATA_API_KEY_SECRET = os.getenv("SOCRATA_API_KEY_SECRET")
     client = sodapy.Socrata(
         host,
-        None,
-        username=os.environ["SOCRATA_USERNAME"],
-        password=os.environ["SOCRATA_PASSWORD"],
+        SOCRATA_APP_TOKEN,
+        username=SOCRATA_API_KEY_ID,
+        password=SOCRATA_API_KEY_SECRET,
     )
-    return client.upsert(resource_id, payload)
+    if method == "upsert":
+        return client.upsert(resource_id, payload)
+    elif method == "replace":
+        return client.replace(resource_id, payload)
+
+    raise ValueError(f"Unknown 'method' value provided: {method}")
