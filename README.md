@@ -15,8 +15,9 @@ These utilities are designed to:
 - update records_to_s3.py to stop using knack.set_env()
 - ability to replace entire contents of S3 bucket
 - update DAGs to use socrata tokens, KNACK_APP_ID, KNACK_API_KEY
-- update to new docker action, document it
+- document docker CI
 - warning: if you copy an app, the record IDs will change. do a replace!
+- get medata loader going again
 
 # Configuration
 
