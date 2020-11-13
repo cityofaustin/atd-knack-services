@@ -17,7 +17,8 @@ These utilities are designed to:
 - update DAGs to use socrata tokens, KNACK_APP_ID, KNACK_API_KEY
 - document docker CI
 - warning: if you copy an app, the record IDs will change. do a replace!
-- get medata loader going again
+- get metadata loader going again
+- disable legacy publisher for those that have been migrated
 
 # Configuration
 
