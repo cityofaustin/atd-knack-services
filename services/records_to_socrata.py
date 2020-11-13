@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# docker run -it --rm --env-file env_file -v /Users/john/Dropbox/atd/atd-knack-services:/app atddocker/atd-knack-services:production /bin/bash
+# docker run -it --rm --env-file env_file -v /Users/john/Dropbox/atd/atd-knack-services:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
 # python services/records_to_socrata.py -a data-tracker -c object_11 -e prod
 import os
 
@@ -36,7 +36,7 @@ def patch_formatters(app, location_fields):
 def main():
     args = utils.args.cli_args(["app-name", "container", "env", "date"])
     config = CONFIG.get(args.app_name).get(args.container)
-    APP_ID = os.getenv("APP_ID")
+    APP_ID = os.getenv("KNACK_APP_ID")
     metadata_fname = f"{args.env}/{args.app_name}/metadata.json"
     metadata = utils.s3.download_one(bucket_name=BUCKET_NAME, fname=metadata_fname)
     prefix = f"{args.env}/{args.app_name}/{args.container}"
@@ -67,4 +67,5 @@ def main():
 
 
 if __name__ == "__main__":
+    logger = utils.logging.getLogger(__file__)
     main()
