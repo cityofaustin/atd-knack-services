@@ -24,5 +24,11 @@ CONFIG = {
             "socrata_resource_id": "b4k4-adkb",
             "location_fields": ["field_182"],
         },
+        "view_2681": {
+            "description": "MMC activities",
+            "scene": "scene_1075",
+            "modified_date_field": "field_2563",
+            "socrata_resource_id": "p7pt-re4k",
+        },
     }
 }

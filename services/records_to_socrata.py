@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+# docker run -it --rm --env-file env_file -v /Users/john/Dropbox/atd/atd-knack-services:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
+# python services/records_to_socrata.py -a data-tracker -c object_11 -e prod
 import os
 
 import knackpy
@@ -25,7 +28,7 @@ def patch_formatters(app, location_fields):
     for key in location_fields:
         for field_def in app.field_defs:
             if field_def.key == key:
-                field_def.formatter = utils.socrata.socrata_formatter
+                field_def.formatter = utils.socrata.socrata_formatter_location
                 break
     return app
 
@@ -33,8 +36,7 @@ def patch_formatters(app, location_fields):
 def main():
     args = utils.args.cli_args(["app-name", "container", "env", "date"])
     config = CONFIG.get(args.app_name).get(args.container)
-    utils.knack.set_env(args.app_name, args.env)
-    app_id = os.getenv("app_id")
+    APP_ID = os.getenv("KNACK_APP_ID")
     metadata_fname = f"{args.env}/{args.app_name}/metadata.json"
     metadata = utils.s3.download_one(bucket_name=BUCKET_NAME, fname=metadata_fname)
     prefix = f"{args.env}/{args.app_name}/{args.container}"
@@ -46,7 +48,9 @@ def main():
     if not records_raw:
         return 0
 
-    app = knackpy.App(app_id=app_id, metadata=metadata)
+    logger.info(f"{len(records_raw)} to process.")
+
+    app = knackpy.App(app_id=APP_ID, metadata=metadata)
     location_fields = config.get("location_fields")
 
     if location_fields:
@@ -58,11 +62,12 @@ def main():
     payload = [record.format() for record in records]
     payload = lower_case_keys(payload)
     payload = bools_to_strings(payload)
-    resource_id = config.get("socrata_resource_id")
-    res = utils.socrata.upsert(resource_id=resource_id, payload=payload)
-    # TODO: handle response
+    resource_id = config["socrata_resource_id"]
+    method = "upsert" if args.date else "replace"
+    res = utils.socrata.publish(method=method, resource_id=resource_id, payload=payload)
     return res
 
 
 if __name__ == "__main__":
+    logger = utils.logging.getLogger(__file__)
     main()

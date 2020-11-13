@@ -3,9 +3,7 @@
 """ Download Knack records and upload to S3 """
 import io
 import json
-import logging
 import os
-import sys
 
 import knackpy
 
@@ -42,35 +40,32 @@ def container_kwargs(container, config, obj=None, scene=None, view=None):
 
 def main():
     args = utils.args.cli_args(["app-name", "container", "env", "date"])
-    logging.info(args)
+    logger.info(args)
 
-    utils.knack.set_env(args.app_name, args.env)
-    app_id = os.getenv("app_id")
-    api_key = os.getenv("api_key")
+    APP_ID = os.getenv("KNACK_APP_ID")
+    API_KEY = os.getenv("KNACK_API_KEY")
     config = CONFIG.get(args.app_name).get(args.container)
 
     if not config:
         raise ValueError(f"No config entry found for {args.app_name}, {args.container}")
 
     modified_date_field = config["modified_date_field"]
+
     filters = utils.knack.date_filter_on_or_after(
         args.date, modified_date_field, tzinfo=APP_TIMEZONE
     )
 
-    logging.info(filters)
-
     kwargs = container_kwargs(args.container, config)
 
     records = knackpy.api.get(
-        app_id=app_id,
-        api_key=api_key,
-        filters=filters,
-        **kwargs,
+        app_id=APP_ID, api_key=API_KEY, filters=filters, **kwargs,
     )
 
     if not records:
-        logging.info("No records to process.")
+        logger.info("No records to process.")
         return
+    
+    logger.info(f"{len(records)} to process.")
 
     record_packages = build_record_packages(
         records, BUCKET_NAME, args.app_name, args.env, args.container
@@ -78,11 +73,10 @@ def main():
 
     utils.s3.upload(record_packages)
 
-    logging.info(f"Records uploaded: {len(record_packages)}")
+    logger.info(f"Records uploaded: {len(record_packages)}")
     return
 
 
 if __name__ == "__main__":
-    # airflow needs this to see logs from the DockerOperator
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logger = utils.logging.getLogger(__file__)
     main()

@@ -11,6 +11,15 @@ These utilities are designed to:
 
 ![basic data flow](docs/basic_flow.jpg)
 
+# TODO
+- update records_to_s3.py to stop using knack.set_env()
+- ability to replace entire contents of S3 bucket
+- update DAGs to use socrata tokens, KNACK_APP_ID, KNACK_API_KEY
+- document docker CI
+- warning: if you copy an app, the record IDs will change. do a replace!
+- get metadata loader going again
+- disable legacy publisher for those that have been migrated
+
 # Configuration
 
 ## S3 Data Store
@@ -41,21 +50,11 @@ BUCKET_NAME = "atd-knack-services"
 
 Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used in file paths in S3 and in our auth JSON.
 
-Specifically, these app names need to be used consistently in two files, which are described in detail below:
-
-- `services/config/knack.py`
-- `~/.knack/credentials`
+Specifically, these app names need to be used consistently in `services/config/knack.py` and the `APP_NAME` environmental vaiable.
 
 Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
 
 ### Auth & Environmental Variables
-
-You have two options for providing access keys to these modules:
-
-- Explictly set environmental variables in your Python environment
-- Use configuration files stored outside of this repository.
-
-This second approach is recommended, because it simiplifies the management of Knack credentials, which require a different app ID and API key for each app.
 
 The required environmental variables for using these scripts are:
 
@@ -68,36 +67,12 @@ The required environmental variables for using these scripts are:
 - `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service
 - `AGOL_PASSWORD`: The ArcGIS Online account password
 
-If you choose to store these env vars in local config files, you must create two files:
+You may elect to use an AWS credentials file, as described in the [`boto3` documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html).
 
-1. An AWS credentials file. Follow AWS's `boto3` library documentation to create this file.
+If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. This command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
 
-2. A second configuration file which holds credentials for Knack, Socrata, and ArcGIS Online.
-
-This must be a JSON file named `credentials` located within a directory called `.knack` within your home directory, like so: `~/.knack/credentials`.
-
-The configuration file must be structured as follows:
-
-```python
-{
-    "knack": {
-        <str: app_name>: {  # <-- see note about app-names, above
-            <str: environment>: {   # 'prod' or 'dev'
-                "app_id": <str: app_id>,
-                "api_key": <str: api_key>
-            }
-        },
-        # ...repeat w/ more apps
-    },
-    "socrata": {
-        "username": <str: username>,
-        "password": <str: password>
-    },
-    "agol": {
-        "username": <str: username>,
-        "password": <str: password>
-    }
-}
+```
+$ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
 ```
 
 ### Knack (`services/config/knack.py`)
@@ -157,6 +132,13 @@ $ python records_to_S3.py \
     -d "2020-09-08T09:21:08-05:00"
 ```
 
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
+- `--container, -c` (`str`, required): the name of the object or view key of the source container
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string with timezone. only records which were modified at or after this date will be processed. If excluded, all records will be processed.
+
 ## Publish Records to the Open Data Portal
 
 Use `records_to_socrata.py` to publish a Knack container to the Open Data Portal (aka, Socrata).
@@ -174,7 +156,7 @@ $ python records_to_socrata.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
 - `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
-- `--date, -d` (`str`, required): an ISO-8601-compliant date string with timezone. only records which were modified at or after this date will be processed.
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string with timezone. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ## Utils (`/services/utils`)
 
