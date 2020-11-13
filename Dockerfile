@@ -4,7 +4,7 @@ FROM python:3.8-slim
 WORKDIR /app
 COPY . /app/atd-knack-services
 
-RUN chmod -R 777 /app/atd-knack-services
+RUN chmod -R 755 /app/*
 
 # # Proceed to install the requirements...do
 RUN cd /app/atd-knack-services && apt-get update && \
