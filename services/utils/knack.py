@@ -1,41 +1,4 @@
-import json
-import logging
-import os
-import pathlib
-
 import arrow
-
-
-def set_env(
-    app_name,
-    env,
-    config_path=".knack/credentials",
-    var_names=["app_id", "api_key"],
-):
-    # check if we're already good to go
-    if all([name in os.environ for name in var_names]):
-        return
-
-    # attempt to load from ~/.knack/credentials
-    home = str(pathlib.Path.home())
-    path = os.path.join(home, config_path)
-
-    if not os.path.exists(path):
-        raise EnvironmentError(
-            f"Unable to find Knack environmental variables at {path}"
-        )
-
-    with open(path, "r") as fin:
-        try:
-            env_config = json.loads(fin.read())
-
-            for name in var_names:
-                os.environ[name] = env_config[app_name][env][name]
-
-        except (KeyError, json.decoder.JSONDecodeError):
-            raise IOError(f"Invalid Knack environment file: {path}")
-
-    logging.info("Found credentials in shared credentials file: ~/.knack/credentials")
 
 
 def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central"):

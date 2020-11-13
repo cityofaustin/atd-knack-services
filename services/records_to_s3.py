@@ -44,26 +44,26 @@ def main():
     args = utils.args.cli_args(["app-name", "container", "env", "date"])
     logging.info(args)
 
-    utils.knack.set_env(args.app_name, args.env)
-    app_id = os.getenv("app_id")
-    api_key = os.getenv("api_key")
+    APP_ID = os.getenv("APP_ID")
+    API_KEY = os.getenv("API_KEY")
     config = CONFIG.get(args.app_name).get(args.container)
 
     if not config:
         raise ValueError(f"No config entry found for {args.app_name}, {args.container}")
 
     modified_date_field = config["modified_date_field"]
+
     filters = utils.knack.date_filter_on_or_after(
         args.date, modified_date_field, tzinfo=APP_TIMEZONE
     )
 
-    logging.info(filters)
+    logging.info("Filters:", filters)
 
     kwargs = container_kwargs(args.container, config)
 
     records = knackpy.api.get(
-        app_id=app_id,
-        api_key=api_key,
+        app_id=APP_ID,
+        api_key=API_KEY,
         filters=filters,
         **kwargs,
     )
