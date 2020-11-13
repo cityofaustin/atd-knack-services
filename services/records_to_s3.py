@@ -55,8 +55,6 @@ def main():
         args.date, modified_date_field, tzinfo=APP_TIMEZONE
     )
 
-    logger.info("Filters:", filters or "None")
-
     kwargs = container_kwargs(args.container, config)
 
     records = knackpy.api.get(
@@ -66,6 +64,8 @@ def main():
     if not records:
         logger.info("No records to process.")
         return
+    
+    logger.info(f"{len(records)} to process.")
 
     record_packages = build_record_packages(
         records, BUCKET_NAME, args.app_name, args.env, args.container
