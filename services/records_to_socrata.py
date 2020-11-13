@@ -28,7 +28,7 @@ def patch_formatters(app, location_fields):
     for key in location_fields:
         for field_def in app.field_defs:
             if field_def.key == key:
-                field_def.formatter = utils.socrata.socrata_formatter
+                field_def.formatter = utils.socrata.socrata_formatter_location
                 break
     return app
 
@@ -47,6 +47,8 @@ def main():
 
     if not records_raw:
         return 0
+
+    logger.info(f"{len(records_raw)} to process.")
 
     app = knackpy.App(app_id=APP_ID, metadata=metadata)
     location_fields = config.get("location_fields")
