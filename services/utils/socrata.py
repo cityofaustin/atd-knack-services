@@ -29,7 +29,12 @@ def socrata_formatter_location(value):
 
 
 def publish(*, method, resource_id, payload, host="data.austintexas.gov"):
-    """Just a sodapy wrapper"""
+    """Just a sodapy wrapper that chunks payloads"""
+    def chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
     SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
     SOCRATA_API_KEY_ID = os.getenv("SOCRATA_API_KEY_ID")
     SOCRATA_API_KEY_SECRET = os.getenv("SOCRATA_API_KEY_SECRET")
@@ -42,9 +47,11 @@ def publish(*, method, resource_id, payload, host="data.austintexas.gov"):
     floating_timestamp_fields = get_floating_timestamp_fields(client, resource_id)
     handle_floating_timestamps(payload, floating_timestamp_fields)
 
-    if method == "upsert":
-        return client.upsert(resource_id, payload)
-    elif method == "replace":
-        return client.replace(resource_id, payload)
-
-    raise ValueError(f"Unknown 'method' value provided: {method}")
+    for chunk in chunks(payload, 5000):
+        if method == "replace":
+            # replace the dataset with first chunk
+            # subsequent chunks will be upserted
+            client.replace(resource_id, chunk)
+            method = "upsert"
+        else:
+            client.upsert(resource_id, chunk)
