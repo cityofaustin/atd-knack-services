@@ -17,7 +17,7 @@ def handle_floating_timestamps(data, floating_timestamp_fields):
             dt = row.get(field)
             if not dt:
                 continue
-            row[field] = arrow.get(dt).format("YYYY-MM-DDTHH:MM:SS")
+            row[field] = arrow.get(dt).format("YYYY-MM-DDTHH:mm:ss")
     return
     
 def socrata_formatter_location(value):
