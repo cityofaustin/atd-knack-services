@@ -56,7 +56,7 @@ def main():
     )
 
     kwargs = container_kwargs(args.container, config)
-
+    logger.info(f"Downloading records from Knack...")
     records = knackpy.api.get(
         app_id=APP_ID, api_key=API_KEY, filters=filters, **kwargs,
     )
@@ -70,7 +70,7 @@ def main():
     record_packages = build_record_packages(
         records, BUCKET_NAME, args.app_name, args.env, args.container
     )
-
+    logger.info("Uploading records to S3...")
     utils.s3.upload(record_packages)
 
     logger.info(f"Records uploaded: {len(record_packages)}")
