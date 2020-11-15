@@ -3,6 +3,7 @@
 import os
 
 import arcgis
+import arrow
 import knackpy
 
 import utils
@@ -18,15 +19,15 @@ APP_ID = os.getenv("KNACK_APP_ID")
 
 
 def main():
-    args = utils.args.cli_args(["app-name", "container", "env"])
+    args = utils.args.cli_args(["app-name", "container", "env", "date"])
     config = CONFIG.get(args.app_name).get(args.container)
-
+    upsert_matching_field = config["upsert_matching_field"]
     metadata_fname = f"{args.env}/{args.app_name}/metadata.json"
     metadata = utils.s3.download_one(bucket_name=BUCKET_NAME, fname=metadata_fname)
     prefix = f"{args.env}/{args.app_name}/{args.container}"
 
     records_raw = utils.s3.download_many(
-        bucket_name=BUCKET_NAME, prefix=prefix, as_dicts=True
+        bucket_name=BUCKET_NAME, prefix=prefix, date_filter=args.date, as_dicts=True
     )
 
     if not records_raw:
@@ -48,8 +49,12 @@ def main():
         utils.agol.build_feature(record, SPATIAL_REFERENCE, location_fields[0])
         for record in records
     ]
-    layer.manager.truncate()
-    layer.edit_features(adds=features)
+    # assume a date of 1970-01-01 indicates a full replacement
+    if arrow.get(args.date) <= arrow.get("1970-01-01"):
+        layer.manager.truncate()
+    layer.append(
+        edits=features, upsert=True, upsert_matching_field=upsert_matching_field
+    )
 
 
 if __name__ == "__main__":

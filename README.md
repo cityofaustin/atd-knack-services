@@ -11,19 +11,22 @@ These utilities are designed to:
 
 ![basic data flow](docs/basic_flow.jpg)
 
-# TODO
-- update records_to_s3.py to stop using knack.set_env()
+## TODO
+
 - ability to replace entire contents of S3 bucket
-- update DAGs to use socrata tokens, KNACK_APP_ID, KNACK_API_KEY
 - document docker CI
 - warning: if you copy an app, the record IDs will change. do a replace!
-- get metadata loader going again
 - disable legacy publisher for those that have been migrated
 - document field matching. think about field mapping...
 
-# Configuration
+## Core concepts
 
-## S3 Data Store
+- Incremental loading and Knack filter limitations
+- Truncating/replacing
+
+## Configuration
+
+### S3 data store
 
 Data is stored in an S3 bucket (`atd-knack-services`), with one subdirectory per Knack application per environment. Each app subdirectory contains a subdirectory for each container, which holds invdividual records stored as JSON a file with its `id` serving as the filename. As such, each store follows the naming pattern `s3://atd-knack-services/<environment>/<app-name>/<container-id>`.
 
@@ -47,7 +50,7 @@ Note that the S3 bucket name must be defined in `services/config/s3.py`.
 BUCKET_NAME = "atd-knack-services"
 ```
 
-## App Names
+### App names
 
 Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used in file paths in S3 and in our auth JSON.
 
@@ -55,7 +58,7 @@ Specifically, these app names need to be used consistently in `services/config/k
 
 Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
 
-### Auth & Environmental Variables
+### Auth & environmental variables
 
 The required environmental variables for using these scripts are:
 
@@ -83,30 +86,29 @@ Each Knack container which will be processed must have configuration parameters 
 ```python
 CONFIG = {
     <str: app_name>: {
-        <str: continer_id>: {
-            "description": "Locations object",
-            "modified_date_field_id": <str: knack_field_id>,
-            < additional optional config key/vals >
+        <str: continer_id>: <dict: container kwargs>
         },
-        < ...additional container entries as needed >
     },
-    < ...additional app entries as needed >
 }
 ```
 
 - `app_name` (`str`): The Knack application name. See note about application names, above.
 - `container_id` (`str`): a Knack object or view key (e.g., `object_11`) which holds the records to be processed.
-- `scene_id` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
-- `description` (`str`): a description of what kind of record this container holds. This is optional and used merely for documentation purposes. Use it!
-- `modified_date_field_id`: A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
-- `socrata_resource_id` (`str`): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
-- `location_fields` (`list`): A list of knack field keys which will be translated to Socrata "location" field types. This ensures that these fields will be transformed to the Socrata location field structure.
 
-# Modules overview
+#### Container properties
+
+- `scene_id` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
+- `modified_date_field_id` (`str`, required): A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
+- `description` (`str`, optional): a description of what kind of record this container holds.
+- `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
+- `location_fields` (`list`, optional): A list of knack field keys which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
+- `service_id` (`str`, optional): The ArcGIS Online feature service identifier. Required to publish to ArcGIS Online.
+- `layer_id` (`int`, optional): The ArcGIS Online layer ID of the the destination layer in the feature service.
+- `upsert_matching_field` (`str`, optional): Required for publishing to arcgis online. The field name to be used to match records when upserting to ArcGIS Online. The field must be configured with a `unique` constraint on the layer.
 
 ## Services (`/services`)
 
-## Load App Metadata to S3
+### Load app metadata to S3
 
 Use `metadata_to_s3.py` to load an application's metadata to S3.
 
@@ -121,7 +123,7 @@ $ python metadata_to_s3.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 
-### Load Knack Records to S3
+### Load knack records to S3
 
 Use `records_to_S3.py` to incrementally load data from a Knack container (an object or view) to an S3 bucket.
 
@@ -140,7 +142,7 @@ $ python records_to_S3.py \
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
-## Publish Records to the Open Data Portal
+### Publish records to the open data portal
 
 Use `records_to_socrata.py` to publish a Knack container to the Open Data Portal (aka, Socrata).
 
@@ -158,6 +160,23 @@ $ python records_to_socrata.py \
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
 - `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
+
+### Publish records to ArcGIS Online
+
+Use `records_to_agol.py` to publish a Knack container to an ArcGIS Online layer. Note that publishing to AGOL always inolves a complete truncate and replacee. Date filtering is not supported.
+
+```shell
+$ python records_to_agol.py \
+    -a data-tracker \
+    -c view_1 \
+    -e prod \
+```
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the name of the object or view key of the source container
+- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 
 ## Utils (`/services/utils`)
 
