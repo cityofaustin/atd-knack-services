@@ -95,9 +95,7 @@ def _upload(record_package):
     session = boto3.session.Session()
     client = session.client("s3")
     return client.upload_fileobj(
-        record_package.fileobj,
-        record_package.bucket_name,
-        record_package.file_name,
+        record_package.fileobj, record_package.bucket_name, record_package.file_name,
     )
 
 
