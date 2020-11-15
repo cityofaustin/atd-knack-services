@@ -19,6 +19,7 @@ These utilities are designed to:
 - warning: if you copy an app, the record IDs will change. do a replace!
 - get metadata loader going again
 - disable legacy publisher for those that have been migrated
+- document field matching. think about field mapping...
 
 # Configuration
 
