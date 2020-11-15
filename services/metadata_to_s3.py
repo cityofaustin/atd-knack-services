@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-""" upload knack metadata to S3. metadata is deposited at
+"""Upload knack metadata to S3. metadata is deposited at
 's3://{bucket-name}/{env}/{app_name}/metadata.json'
 """
 import io
@@ -13,6 +12,7 @@ import knackpy
 from config.s3 import BUCKET_NAME
 import utils
 
+
 def main():
     args = utils.args.cli_args(["app-name", "env"])
     APP_ID = os.getenv("KNACK_APP_ID")
@@ -22,9 +22,7 @@ def main():
 
     with io.BytesIO(payload) as f:
         response = client.upload_fileobj(
-            f,
-            f"{BUCKET_NAME}",
-            f"{args.env}/{args.app_name}/metadata.json",
+            f, f"{BUCKET_NAME}", f"{args.env}/{args.app_name}/metadata.json",
         )
 
     if response:
