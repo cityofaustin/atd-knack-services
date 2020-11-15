@@ -137,7 +137,7 @@ $ python records_to_S3.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
-- `--date, -d` (`str`, optional): an ISO-8601-compliant date string with timezone. only records which were modified at or after this date will be processed. If excluded, all records will be processed.
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ## Publish Records to the Open Data Portal
 
@@ -156,7 +156,7 @@ $ python records_to_socrata.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
 - `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
-- `--date, -d` (`str`, optional): an ISO-8601-compliant date string with timezone. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ## Utils (`/services/utils`)
 
