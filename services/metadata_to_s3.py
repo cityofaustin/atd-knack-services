@@ -13,12 +13,10 @@ import knackpy
 from config.s3 import BUCKET_NAME
 import utils
 
-
 def main():
     args = utils.args.cli_args(["app-name", "env"])
-    utils.knack.set_env(args.app_name, args.env)
-    app_id = os.getenv("app_id")
-    metadata = knackpy.api.get_metadata(app_id=app_id)
+    APP_ID = os.getenv("KNACK_APP_ID")
+    metadata = knackpy.api.get_metadata(app_id=APP_ID)
     payload = json.dumps(metadata).encode()
     client = boto3.client("s3")
 
