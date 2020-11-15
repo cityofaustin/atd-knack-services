@@ -16,6 +16,8 @@ CONFIG = {
             "modified_date_field": "field_205",
             "socrata_resource_id": "p53x-x73x",
             "location_fields": ["field_182"],
+            "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
+            "layer_id": 0,
         },
         "view_395": {
             "description": "CCTV Cameras",
