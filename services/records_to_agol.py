@@ -22,6 +22,9 @@ def main():
     args = utils.args.cli_args(["app-name", "container", "env", "date"])
     config = CONFIG.get(args.app_name).get(args.container)
     upsert_matching_field = config["upsert_matching_field"]
+    location_fields = config.get("location_fields")
+    service_id = config["service_id"]
+    layer_id = config["layer_id"]
     metadata_fname = f"{args.env}/{args.app_name}/metadata.json"
     metadata = utils.s3.download_one(bucket_name=BUCKET_NAME, fname=metadata_fname)
     prefix = f"{args.env}/{args.app_name}/{args.container}"
@@ -39,18 +42,16 @@ def main():
     app.data[args.container] = records_raw
     records = app.get(args.container)
 
-    location_fields = config.get("location_fields")
-    service_id = config["service_id"]
-    laye_id = config["layer_id"]
     gis = arcgis.GIS(url=URL, username=USERNAME, password=PASSWORD)
     service = gis.content.get(service_id)
-    layer = service.layers[laye_id]
+    layer = service.layers[layer_id]
     features = [
         utils.agol.build_feature(record, SPATIAL_REFERENCE, location_fields[0])
         for record in records
     ]
-    # assume a date of 1970-01-01 indicates a full replacement
+
     if arrow.get(args.date) <= arrow.get("1970-01-01"):
+        # replace dataset if date filter is <= 1970-01-01
         layer.manager.truncate()
     layer.append(
         edits=features, upsert=True, upsert_matching_field=upsert_matching_field
