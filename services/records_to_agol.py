@@ -19,7 +19,7 @@ APP_ID = os.getenv("KNACK_APP_ID")
 
 
 def main():
-    args = utils.args.cli_args(["app-name", "container", "env", "date"])
+    args = utils.args.cli_args(["app-name", "container", "env"])
     config = CONFIG.get(args.app_name).get(args.container)
     upsert_matching_field = config["upsert_matching_field"]
     location_fields = config.get("location_fields")
@@ -30,7 +30,7 @@ def main():
     prefix = f"{args.env}/{args.app_name}/{args.container}"
 
     records_raw = utils.s3.download_many(
-        bucket_name=BUCKET_NAME, prefix=prefix, date_filter=args.date, as_dicts=True
+        bucket_name=BUCKET_NAME, prefix=prefix, as_dicts=True
     )
 
     if not records_raw:
@@ -50,12 +50,24 @@ def main():
         for record in records
     ]
 
-    if arrow.get(args.date) <= arrow.get("1970-01-01"):
-        # replace dataset if date filter is <= 1970-01-01
-        layer.manager.truncate()
+
+    """
+    The arcgis package does have a method that supports upserting: append()
+    https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer  # noqa
+
+    However this method errored out on multiple datasets and i gave up.
     layer.append(
-        edits=features, upsert=True, upsert_matching_field=upsert_matching_field
+        edits=features, upsert=True, upsert_matching_field="id"
     )
+    """
+
+    layer.manager.truncate()
+    
+    layer.edit_features(
+        adds=features
+    )
+    
+
 
 
 if __name__ == "__main__":
