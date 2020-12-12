@@ -37,11 +37,11 @@ Note that although Knack record IDs are globally unique, this table may hold mul
 
 | **Column name** | **Data type**              | **Constraint** | **Note**                      |
 | --------------- | -------------------------- | -------------- | ----------------------------- |
-| `app_id`          | `text`                     | `primary key`  | `text`                        |
-| `container_id`    | `text`                     | `primary key`  | `primary key`                 |
-| `record_id`       | `text`                     | `primary key`  |                               |
-| `record`          | `json`                     | `not null`     |                               |
-| `updated_at`      | `timestamp with time zone` | `not null`     | _set via trigger `on update`_ |
+| `app_id`        | `text`                     | `primary key`  |                               |
+| `container_id`  | `text`                     | `primary key`  |                               |
+| `record_id`     | `text`                     | `primary key`  |                               |
+| `record`        | `json`                     | `not null`     |                               |
+| `updated_at`    | `timestamp with time zone` | `not null`     | _set via trigger `on update`_ |
 
 #### `knack_metadata`
 
@@ -49,8 +49,8 @@ This table holds Knack application metadata, which is kept in sync and relied up
 
 | **Column name** | **Data type** | **Constraint** |
 | --------------- | ------------- | -------------- |
-| `app_id`          | `text`        | `primary key`  |
-| `metadata`        | `json`        | `not null`     |
+| `app_id`        | `text`        | `primary key`  |
+| `metadata`      | `json`        | `not null`     |
 
 ### PostgREST API
 
