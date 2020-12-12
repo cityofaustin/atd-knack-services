@@ -35,20 +35,22 @@ This is the primary table which holds all knack records. Records are uniquely id
 
 Note that although Knack record IDs are globally unique, this table may hold multiple copies of the same record, but with a different field set, because the same record may be sourced from different views. **You should always reference all primary key columns when reading from or writing data to this table.**
 
-| **Column name** | app_id        | container_id  | record_id     | record     | updated_at                    |
-| --------------- | ------------- | ------------- | ------------- | ---------- | ----------------------------- |
-| **Data type**   | `text`        | `text`        | `text`        | `json`     | `timestamp with time zone`    |
-| **Constraint**  | `primary key` | `primary key` | `primary key` | `not null` | `not null`                    |
-| **Note**        |               |               |               |            | _set via trigger `on update`_ |
+| **Column name** | **Data type**              | **Constraint** | **Note**                      |
+| --------------- | -------------------------- | -------------- | ----------------------------- |
+| `app_id`          | `text`                     | `primary key`  | `text`                        |
+| `container_id`    | `text`                     | `primary key`  | `primary key`                 |
+| `record_id`       | `text`                     | `primary key`  |                               |
+| `record`          | `json`                     | `not null`     |                               |
+| `updated_at`      | `timestamp with time zone` | `not null`     | _set via trigger `on update`_ |
 
 #### `knack_metadata`
 
 This table holds Knack application metadata, which is kept in sync and relied upon by the scripts in this repo. We store app metadata in the database as means to reduce API load on the Knack application itself.
 
-| **Column name** | app_id        | metadata   |
-| --------------- | ------------- | ---------- |
-| **Data type**   | `text`        | `json`     |
-| **Constraint**  | `primary key` | `not null` |
+| **Column name** | **Data type** | **Constraint** |
+| --------------- | ------------- | -------------- |
+| `app_id`          | `text`        | `primary key`  |
+| `metadata`        | `json`        | `not null`     |
 
 ### PostgREST API
 
