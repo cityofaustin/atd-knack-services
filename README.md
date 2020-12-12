@@ -4,7 +4,7 @@ ATD Knack Services is a set of pyhton modules which automate the flow of data fr
 
 These utilities are designed to:
 
-- incrementally offload Knack application records and metadata as a JSON documents in a collection of S3 data stores
+- incrementally offload Knack application records and metadata as a JSON documents in a PostgreSQL data store
 - incrementally fetch records and publish them to external systems such as Socrata and ArcGIS Online
 - lay the groundwork for further integration with a data lake and/or a data warehouse
 - be deployed in Airflow or similar task management frameworks
@@ -13,7 +13,6 @@ These utilities are designed to:
 
 ## TODO
 
-- ability to replace entire contents of S3 bucket
 - document docker CI
 - warning: if you copy an app, the record IDs will change. do a replace!
 - disable legacy publisher for those that have been migrated
@@ -26,54 +25,55 @@ These utilities are designed to:
 
 ## Configuration
 
-### S3 data store
+### Postgres data store
 
-Data is stored in an S3 bucket (`atd-knack-services`), with one subdirectory per Knack application per environment. Each app subdirectory contains a subdirectory for each container, which holds invdividual records stored as JSON a file with its `id` serving as the filename. As such, each store follows the naming pattern `s3://atd-knack-services/<environment>/<app-name>/<container-id>`.
+A PostgreSQL database serves as staging area for Knack records to be published to downstream systems. Knack data lives in two tables within the `api` schema.
 
-Application metadata is also stored as a JSON file at the root of each S3 bucket.
+#### `knack`
 
-```
-. s3://atd-knack-services
-|-- prod
-|   |-- data-tracker
-|       |-- metadata.json
-|       |-- view_1
-|           |-- 5f31673f7a63820015ef4c85.json
-|           |-- 5b34fbc85295dx37f1402543.json
-|           |-- 5b34fbc85295de37y1402337.json
-|           |...
-```
+This is the primary table which holds all knack records. Records are uniquely identified by the Knack application ID (`app_id`), the container ID (`container_id`) of the source Knack object or view, and the Knack record ID of the record.
 
-Note that the S3 bucket name must be defined in `services/config/s3.py`.
+Note that although Knack record IDs are globally unique, this table may hold multiple copies of the same record, but with a different field set, because the same record may be sourced from different views. **You should always reference all primary key columns when reading from or writing data to this table.**
 
-```python
-BUCKET_NAME = "atd-knack-services"
-```
+| **Column name** | app_id        | container_id  | record_id     | record     | updated_at                    |
+| --------------- | ------------- | ------------- | ------------- | ---------- | ----------------------------- |
+| **Data type**   | `text`        | `text`        | `text`        | `json`     | `timestamp with time zone`    |
+| **Constraint**  | `primary key` | `primary key` | `primary key` | `not null` | `not null`                    |
+| **Note**        |               |               |               |            | _set via trigger `on update`_ |
+
+#### `knack_metadata`
+
+This table holds Knack application metadata, which is kept in sync and relied upon by the scripts in this repo. We store app metadata in the database as means to reduce API load on the Knack application itself.
+
+| **Column name** | app_id        | metadata   |
+| --------------- | ------------- | ---------- |
+| **Data type**   | `text`        | `json`     |
+| **Constraint**  | `primary key` | `not null` |
+
+### PostgREST API
+
+The Postgres data store is fronted by a [Postgrest](http://postgrest.com/) API which is used for all reading and writing to the database.
+
+All operations within the `api` schema that is exposed via PostgREST must be authenticated with a valid JWT for the dedicated Postgres user. The JWT secret and API user name are stored in the DTS password manager.
 
 ### App names
 
-Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used in file paths in S3 and in our auth JSON.
-
-Specifically, these app names need to be used consistently in `services/config/knack.py` and the `APP_NAME` environmental vaiable.
-
-Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
+Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used to identify the correct Knack auth tokens and ETL configuration parameters in `services/config/knack.py`. Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
 
 ### Auth & environmental variables
 
 The required environmental variables for using these scripts are:
 
-- `AWS_ACCESS_KEY_ID`: An AWS access key with read/write permissions on the S3 bucket
-- `AWS_SECRET_ACCESS_KEY`: The AWS access key token
-- `APP_ID`: The Knack App ID of the application you need to access
-- `API_KEY`: The Knack API key of the application you need to access
-- `SOCRATA_USERNAME`: A Socrata user name that has access to the destination Socrata dataset
-- `SOCRATA_PASSWORD`: The Socrata account password
 - `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service
 - `AGOL_PASSWORD`: The ArcGIS Online account password
+- `APP_ID`: The Knack App ID of the application you need to access
+- `API_KEY`: The Knack API key of the application you need to access
+- `AWS_ACCESS_KEY_ID`: An AWS access key with read/write permissions on the S3 bucket
+- `AWS_SECRET_ACCESS_KEY`: The AWS access key toke
+- `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
+- `PGREST_ENDPOINT`: The URL of the PostgREST server. Currently available at `https://atd-knack-services.austinmobility.io`
 
-You may elect to use an AWS credentials file, as described in the [`boto3` documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html).
-
-If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. This command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
+If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. For development purpsoses, this command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
 
 ```
 $ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
@@ -108,12 +108,12 @@ CONFIG = {
 
 ## Services (`/services`)
 
-### Load app metadata to S3
+### Load app metadata to Postgres
 
-Use `metadata_to_s3.py` to load an application's metadata to S3.
+Use `metadata_to_postgrest.py` to load an application's metadata to Postgres.
 
 ```shell
-$ python metadata_to_s3.py \
+$ python metadata_to_postgrest.py \
     --app-name data-tracker \
     --env prod \
 ```
@@ -123,12 +123,12 @@ $ python metadata_to_s3.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 
-### Load knack records to S3
+### Load knack records to Postgres
 
-Use `records_to_S3.py` to incrementally load data from a Knack container (an object or view) to an S3 bucket.
+Use `records_to_postgrest.py` to incrementally load data from a Knack container (an object or view) to the `knack` table in Postgres.
 
 ```shell
-$ python records_to_S3.py \
+$ python records_to_postgrest.py \
     -a data-tracker \
     -c view_1 \
     -e prod \
@@ -182,22 +182,12 @@ $ python records_to_agol.py \
 
 The package contains utilities for fetching and pushing data between Knack applications and AWS S3.
 
-### `utils.s3.upload`
-
-Multi-threaded uploading of file-like objects to S3.
-
-### `utils.s3.download_many`
-
-Multi-threaded downloading of file objects from S3.
-
-### `utils.s3.download_one`
-
-Download a single file from S3.
+TODO
 
 ## Deployment
 
 An end-to-end ETL process will involve creating at least three Airflow tasks:
 
-- Load app metadata to S3
-- Load Knack records to S3
+- Load app metadata to Postgres
+- Load Knack records to Postgres
 - Publish Knack records to destination system

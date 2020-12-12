@@ -1,10 +1,10 @@
-from . import agol, args, logging, knack, s3, socrata
+from . import agol, args, logging, knack, postgrest, socrata
 
 __all__ = [
     "agol",
     "args",
     "logging",
     "knack",
-    "s3",
+    "postgrest",
     "socrata",
 ]
