@@ -31,7 +31,7 @@ A PostgreSQL database serves as staging area for Knack records to be published t
 
 #### `knack`
 
-This is the primary table which holds all knack records. Records are uniquely identified by the Knack application ID (`app_id`), the container ID (`container_id`) of the source Knack object or view, and the Knack record ID of the record.
+This is the primary table which holds all knack records. Records are uniquely identified by the Knack application ID (`app_id`), the container ID (`container_id`) of the source Knack object or view, and the Knack record ID (`record_id`) of the record. The entire raw Knack record data is stored as JSON in the `record` column.
 
 Note that although Knack record IDs are globally unique, this table may hold multiple copies of the same record, but with a different field set, because the same record may be sourced from different views. **You should always reference all primary key columns when reading from or writing data to this table.**
 
