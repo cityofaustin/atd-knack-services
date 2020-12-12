@@ -6,10 +6,6 @@ APP_TIMEZONE = "US/Central"
 
 CONFIG = {
     "data-tracker": {
-        "object_11": {
-            "description": "Locations object",
-            "modified_date_field": "field_508",
-        },
         "view_197": {
             "description": "Signals data pub view",
             "scene": "scene_73",
@@ -32,6 +28,13 @@ CONFIG = {
             "scene": "scene_1075",
             "modified_date_field": "field_2563",
             "socrata_resource_id": "p7pt-re4k",
+        },
+        "view_2892": {
+            "description": "MMC issues",
+            "scene": "scene_514",
+            "modified_date_field": "field_1385",
+            "socrata_resource_id": "v7vh-gbi6",
+            "location_fields": ["field_182"]
         },
     }
 }

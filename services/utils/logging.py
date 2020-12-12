@@ -9,6 +9,5 @@ def getLogger(name, level=logging.INFO):
     formatter = logging.Formatter(fmt=" %(name)s.%(levelname)s: %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
     return logger
-

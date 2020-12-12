@@ -1,6 +1,22 @@
 import arrow
 
 
+def socrata_formatter_location(value):
+    if not value:
+        return value
+    return f"({value['longitude']}, { value['latitude']})"
+
+
+def socrata_formatter_point(value):
+    if not value:
+        return value
+
+    return {
+        "type": "Point",
+        "coordinates": [float(value["longitude"]), float(value["latitude"])],
+    }
+
+
 def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central"):
     """Return a Knack filter to retrieve records on or after a given date field/value.
     If timestamp is None, defaults to 01/01/1970.
