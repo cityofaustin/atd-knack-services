@@ -9,7 +9,9 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
 - [Core Concepts](#core-concepts)
 - [System Architecture](#system-architecture)
 - [Configuration](#configuration)
-- [Services](#services)
+- [Services](#services-(`/services`))
+- [Utils](#utils-(`/services/utils`))
+- [Maintenance](#maintenance)
 
 ## Core concepts
 
@@ -206,6 +208,13 @@ $ python records_to_agol.py \
 The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
 
 TODO
+
+## Maintenance
+
+- Configure a new container
+- Schema changes/updating metadata
+- Adding a new destination dataset
+- Extending/development
 
 ## Deployment
 
