@@ -46,7 +46,7 @@ In order to achieve incremental loads when writing data, these services require 
 
 ### Postgres data store
 
-A PostgreSQL database serves as staging area for Knack records to be published to downstream systems. Knack data lives in two tables within the `api` schema, described below.
+A PostgreSQL database serves as a staging area for Knack records to be published to downstream systems. Knack data lives in two tables within the `api` schema, described below.
 
 #### `knack`
 
@@ -64,7 +64,7 @@ Note that although Knack record IDs are globally unique, this table may hold mul
 
 #### `knack_metadata`
 
-This table holds Knack application metadata, which is kept in sync and relied upon by the scripts in this repo. We store app metadata in the database as means to reduce API load on the Knack application itself.
+This table holds Knack application metadata, which is kept in sync and relied upon by the scripts in this repo. We store app metadata in the database a as means to reduce API load on the Knack application itself.
 
 | **Column name** | **Data type** | **Constraint** |
 | --------------- | ------------- | -------------- |
@@ -91,8 +91,8 @@ The required environmental variables for using these scripts are:
 - `AGOL_PASSWORD`: The ArcGIS Online account password
 - `APP_ID`: The Knack App ID of the application you need to access
 - `API_KEY`: The Knack API key of the application you need to access
-- `AWS_ACCESS_KEY_ID`: An AWS access key with read/write permissions on the S3 bucket
-- `AWS_SECRET_ACCESS_KEY`: The AWS access key toke
+- `SOCRATA_USERNAME`: A Socrata user name that has access to the destination Socrata dataset
+- `SOCRATA_PASSWORD`: The Socrata account password
 - `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
 - `PGREST_ENDPOINT`: The URL of the PostgREST server. Currently available at `https://atd-knack-services.austinmobility.io`
 
