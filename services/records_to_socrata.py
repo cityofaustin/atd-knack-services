@@ -62,7 +62,7 @@ def patch_formatters(field_defs, location_fields, metadata_socrata):
             formatter_func = utils.knack.socrata_formatter_location
         else:
             raise ValueError(
-                f"Socrata data type for {field_id} ({field_name_knack}) is not a `point` or `location` type"  # noqa #501
+                f"Socrata data type for {field_id} ({field_name_knack}) is not a `point` or `location` type"  # noqa:E501
             )
         knackpy_field_def.formatter = formatter_func
 
