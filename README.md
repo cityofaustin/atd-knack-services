@@ -1,85 +1,110 @@
 # atd-knack-services
 
-ATD Knack Services is a set of pyhton modules which automate the flow of data from ATD's Knack applications to downstream systems.
-
-These utilities are designed to:
-
-- incrementally offload Knack application records and metadata as a JSON documents in a collection of S3 data stores
-- incrementally fetch records and publish them to external systems such as Socrata and ArcGIS Online
-- lay the groundwork for further integration with a data lake and/or a data warehouse
-- be deployed in Airflow or similar task management frameworks
+ATD Knack Services is a set of python modules which automate the flow of data from ATD's Knack applications to downstream systems.
 
 ![basic data flow](docs/basic_flow.jpg)
 
-## TODO
+## Contents
 
-- ability to replace entire contents of S3 bucket
-- document docker CI
-- warning: if you copy an app, the record IDs will change. do a replace!
-- disable legacy publisher for those that have been migrated
-- document field matching. think about field mapping...
+- [Core Concepts](#core-concepts)
+- [System Architecture](#system-architecture)
+- [Configuration](#configuration)
+- [Services](#services-(`/services`))
+- [Utils](#utils-(`/services/utils`))
+- [Maintenance](#maintenance)
 
 ## Core concepts
 
-- Incremental loading and Knack filter limitations
-- Truncating/replacing
+These utilities are designed to:
+
+- Incrementally offload Knack application records and metadata as a JSON documents in a PostgreSQL data store
+- Incrementally fetch records and publish them to external systems such as Socrata and ArcGIS Online
+- Lay the groundwork for further integration with a data lake and/or a data warehouse
+- Be deployed in Airflow or similar task management frameworks
+
+### Knack containers
+
+A "container" is a generic term to identify the source for a set of Knack application records. In Knack parlance, a container can refer to either a "view" (a UI component which exposes records in the application) or an "object" (the equivalent to a database table).
+
+"Container" is not a Knack term; it is endemic to our team and carried forth from [Knackpy](https://github.com/cityofaustin/knackpy), and it is universally meant to refer to either a view or object key which uniquely identifies the resource in a given application.
+
+### Incremental loading
+
+These services are designed to keep Knack application data in sync with external systems efficiently by only processing records which have been created or modified during a given timeframe. By _incrementally_ processing new or modified records it possible to maintain a low level of latency between a Knack application and its dependents without placing undue demand on the Knack application stack, even when managing large datasets.
+
+Incremental loading is made possible by referencing a record's timestamp throughout the pipleine. Specifically:
+
+- The [Knack configuration file](#knack-config) requires that all entries include a `modified_date_field_id`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in funcionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
+
+- The [Postges data store](#postgres-data-store) relies on a stored procedure to maintain an `updated_at` timestamp which is set to the current datetime whenever a record is created or modified.
+
+- The processing scripts in this repository accept a `--date` flag which will be used as a filter when extracting records from the Knack application or the Postgres database. Only records which were modified on or after this date will be ingested into the ETL pipeline.
+
+In order to achieve incremental loads when writing data, these services require that destination system support an "upsert" method. Although both Postgres(t) and Socrata support upserting, ArcGIS Online does not\*. In such cases, a full replace of the destination dataset is applied on each ETL run. See `[Publish records to ArcGIS Online](#publish-records-to-arcgis-online) for more details.
+
+\*The ArcGIS Python API claims support for an uspert method, documented [here](https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer), but we abandoned this approach after repeated attempts to debug cryptic error messages.
+
+## System Architecture
+
+### Postgres data store
+
+A PostgreSQL database serves as a staging area for Knack records to be published to downstream systems. Knack data lives in two tables within the `api` schema, described below.
+
+#### `knack`
+
+This is the primary table which holds all knack records. Records are uniquely identified by the Knack application ID (`app_id`), the container ID (`container_id`) of the source Knack object or view, and the Knack record ID (`record_id`) of the record. The entire raw Knack record data is stored as JSON in the `record` column.
+
+Note that although Knack record IDs are globally unique, this table may hold multiple copies of the same record, but with a different field set, because the same record may be sourced from different views. **You should always reference all primary key columns when reading from or writing data to this table.**
+
+| **Column name** | **Data type**              | **Constraint** | **Note**                      |
+| --------------- | -------------------------- | -------------- | ----------------------------- |
+| `app_id`        | `text`                     | `primary key`  |                               |
+| `container_id`  | `text`                     | `primary key`  |                               |
+| `record_id`     | `text`                     | `primary key`  |                               |
+| `record`        | `json`                     | `not null`     |                               |
+| `updated_at`    | `timestamp with time zone` | `not null`     | _set via trigger `on update`_ |
+
+#### `knack_metadata`
+
+This table holds Knack application metadata, which is kept in sync and relied upon by the scripts in this repo. We store app metadata in the database a as means to reduce API load on the Knack application itself.
+
+| **Column name** | **Data type** | **Constraint** |
+| --------------- | ------------- | -------------- |
+| `app_id`        | `text`        | `primary key`  |
+| `metadata`      | `json`        | `not null`     |
+
+### PostgREST API
+
+The Postgres data store is fronted by a [Postgrest](http://postgrest.com/) API which is used for all reading and writing to the database. The PostgREST server runs on an EC2 instance.
+
+All operations within the `api` schema that is exposed via PostgREST must be authenticated with a valid JWT for the dedicated Postgres user. The JWT secret and API user name are stored in the DTS password manager.
 
 ## Configuration
 
-### S3 data store
-
-Data is stored in an S3 bucket (`atd-knack-services`), with one subdirectory per Knack application per environment. Each app subdirectory contains a subdirectory for each container, which holds invdividual records stored as JSON a file with its `id` serving as the filename. As such, each store follows the naming pattern `s3://atd-knack-services/<environment>/<app-name>/<container-id>`.
-
-Application metadata is also stored as a JSON file at the root of each S3 bucket.
-
-```
-. s3://atd-knack-services
-|-- prod
-|   |-- data-tracker
-|       |-- metadata.json
-|       |-- view_1
-|           |-- 5f31673f7a63820015ef4c85.json
-|           |-- 5b34fbc85295dx37f1402543.json
-|           |-- 5b34fbc85295de37y1402337.json
-|           |...
-```
-
-Note that the S3 bucket name must be defined in `services/config/s3.py`.
-
-```python
-BUCKET_NAME = "atd-knack-services"
-```
-
 ### App names
 
-Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used in file paths in S3 and in our auth JSON.
-
-Specifically, these app names need to be used consistently in `services/config/knack.py` and the `APP_NAME` environmental vaiable.
-
-Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
+Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used to identify the correct Knack auth tokens and ETL configuration parameters in `services/config/knack.py`. Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
 
 ### Auth & environmental variables
 
 The required environmental variables for using these scripts are:
 
-- `AWS_ACCESS_KEY_ID`: An AWS access key with read/write permissions on the S3 bucket
-- `AWS_SECRET_ACCESS_KEY`: The AWS access key token
+- `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service
+- `AGOL_PASSWORD`: The ArcGIS Online account password
 - `APP_ID`: The Knack App ID of the application you need to access
 - `API_KEY`: The Knack API key of the application you need to access
 - `SOCRATA_USERNAME`: A Socrata user name that has access to the destination Socrata dataset
 - `SOCRATA_PASSWORD`: The Socrata account password
-- `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service
-- `AGOL_PASSWORD`: The ArcGIS Online account password
+- `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
+- `PGREST_ENDPOINT`: The URL of the PostgREST server. Currently available at `https://atd-knack-services.austinmobility.io`
 
-You may elect to use an AWS credentials file, as described in the [`boto3` documentation](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html).
-
-If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. This command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
+If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. For development purpsoses, this command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
 
 ```
 $ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
 ```
 
-### Knack (`services/config/knack.py`)
+### Knack config
 
 Each Knack container which will be processed must have configuration parameters defined in `services/config/knack.py`, as follows:
 
@@ -108,12 +133,12 @@ CONFIG = {
 
 ## Services (`/services`)
 
-### Load app metadata to S3
+### Load app metadata to Postgres
 
-Use `metadata_to_s3.py` to load an application's metadata to S3.
+Use `metadata_to_postgrest.py` to load an application's metadata to Postgres.
 
 ```shell
-$ python metadata_to_s3.py \
+$ python metadata_to_postgrest.py \
     --app-name data-tracker \
     --env prod \
 ```
@@ -123,12 +148,12 @@ $ python metadata_to_s3.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 
-### Load knack records to S3
+### Load knack records to Postgres
 
-Use `records_to_S3.py` to incrementally load data from a Knack container (an object or view) to an S3 bucket.
+Use `records_to_postgrest.py` to incrementally load data from a Knack container (an object or view) to the `knack` table in Postgres.
 
 ```shell
-$ python records_to_S3.py \
+$ python records_to_postgrest.py \
     -a data-tracker \
     -c view_1 \
     -e prod \
@@ -180,24 +205,29 @@ $ python records_to_agol.py \
 
 ## Utils (`/services/utils`)
 
-The package contains utilities for fetching and pushing data between Knack applications and AWS S3.
+The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
 
-### `utils.s3.upload`
+TODO
 
-Multi-threaded uploading of file-like objects to S3.
+## Maintenance
 
-### `utils.s3.download_many`
-
-Multi-threaded downloading of file objects from S3.
-
-### `utils.s3.download_one`
-
-Download a single file from S3.
+- Configure a new container
+- Schema changes/updating metadata
+- Adding a new destination dataset
+- Extending/development
 
 ## Deployment
 
 An end-to-end ETL process will involve creating at least three Airflow tasks:
 
-- Load app metadata to S3
-- Load Knack records to S3
+- Load app metadata to Postgres
+- Load Knack records to Postgres
 - Publish Knack records to destination system
+
+## TODO
+
+- document docker CI
+- disable legacy publisher for those that have been migrated
+- document field matching. think about field mapping...
+- staging instance
+- document Truncating/replacing
