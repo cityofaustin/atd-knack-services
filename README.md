@@ -30,13 +30,17 @@ A "container" is a generic term to identify the source for a set of Knack applic
 
 These services are designed to keep Knack application data in sync with external systems efficiently by only processing records which have been created or modified during a given timeframe. By _incrementally_ processing new or modified records it possible to maintain a low level of latency between a Knack application and its dependents without placing undue demand on the Knack application stack, even when managing large datasets.
 
-Incremental loading is made possible by referencing a record's timestamps throughout the pipleine. Specifically:
+Incremental loading is made possible by referencing a record's timestamp throughout the pipleine. Specifically:
 
 - The [Knack configuration file](#knack-config) requires that all entries include a `modified_date_field_id`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in funcionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
 
 - The [Postges data store](#postgres-data-store) relies on a stored procedure to maintain an `updated_at` timestamp which is set to the current datetime whenever a record is created or modified.
 
 - The processing scripts in this repository accept a `--date` flag which will be used as a filter when extracting records from the Knack application or the Postgres database. Only records which were modified on or after this date will be ingested into the ETL pipeline.
+
+In order to achieve incremental loads when writing data, these services require that destination system support an "upsert" method. Although both Postgres(t) and Socrata support upserting, ArcGIS Online does not*. In such cases, a full replace of the destination dataset is applied on each ETL run. See `[Publish records to ArcGIS Online](#publish-records-to-arcgis-online) for more details.
+
+*The ArcGIS Python API claims support for an uspert method, documented [here]( https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer), but we abandoned this approach after repeated attempts to debug cryptic error messages.
 
 ## System Architecture
 
