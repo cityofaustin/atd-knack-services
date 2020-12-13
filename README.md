@@ -14,20 +14,20 @@ These utilities are designed to:
 ## TODO
 
 - document docker CI
-- warning: if you copy an app, the record IDs will change. do a replace!
 - disable legacy publisher for those that have been migrated
 - document field matching. think about field mapping...
+- staging instance
 
 ## Core concepts
 
 - Incremental loading and Knack filter limitations
 - Truncating/replacing
 
-## Configuration
+## System Architecture
 
 ### Postgres data store
 
-A PostgreSQL database serves as staging area for Knack records to be published to downstream systems. Knack data lives in two tables within the `api` schema.
+A PostgreSQL database serves as staging area for Knack records to be published to downstream systems. Knack data lives in two tables within the `api` schema, described below.
 
 #### `knack`
 
@@ -54,9 +54,11 @@ This table holds Knack application metadata, which is kept in sync and relied up
 
 ### PostgREST API
 
-The Postgres data store is fronted by a [Postgrest](http://postgrest.com/) API which is used for all reading and writing to the database.
+The Postgres data store is fronted by a [Postgrest](http://postgrest.com/) API which is used for all reading and writing to the database. The PostgREST server runs on an EC2 instance.
 
 All operations within the `api` schema that is exposed via PostgREST must be authenticated with a valid JWT for the dedicated Postgres user. The JWT secret and API user name are stored in the DTS password manager.
+
+## Configuration
 
 ### App names
 
@@ -81,7 +83,7 @@ If you'd like to run locally in Docker, create an [environment file](https://doc
 $ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
 ```
 
-### Knack (`services/config/knack.py`)
+### Knack config (`services/config/knack.py`)
 
 Each Knack container which will be processed must have configuration parameters defined in `services/config/knack.py`, as follows:
 
@@ -182,7 +184,7 @@ $ python records_to_agol.py \
 
 ## Utils (`/services/utils`)
 
-The package contains utilities for fetching and pushing data between Knack applications and AWS S3.
+The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
 
 TODO
 
