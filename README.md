@@ -1,27 +1,42 @@
 # atd-knack-services
 
-ATD Knack Services is a set of pyhton modules which automate the flow of data from ATD's Knack applications to downstream systems.
+ATD Knack Services is a set of python modules which automate the flow of data from ATD's Knack applications to downstream systems.
 
-These utilities are designed to:
+## Contents
 
-- incrementally offload Knack application records and metadata as a JSON documents in a PostgreSQL data store
-- incrementally fetch records and publish them to external systems such as Socrata and ArcGIS Online
-- lay the groundwork for further integration with a data lake and/or a data warehouse
-- be deployed in Airflow or similar task management frameworks
-
-![basic data flow](docs/basic_flow.jpg)
-
-## TODO
-
-- document docker CI
-- disable legacy publisher for those that have been migrated
-- document field matching. think about field mapping...
-- staging instance
+- [Core Concepts](#core-concepts)
+- [System Architecture](#system-architecture)
+- [Configuration](#configuration)
+- [Services](#services)
 
 ## Core concepts
 
-- Incremental loading and Knack filter limitations
-- Truncating/replacing
+These utilities are designed to:
+
+- Incrementally offload Knack application records and metadata as a JSON documents in a PostgreSQL data store
+- Incrementally fetch records and publish them to external systems such as Socrata and ArcGIS Online
+- Lay the groundwork for further integration with a data lake and/or a data warehouse
+- Be deployed in Airflow or similar task management frameworks
+
+![basic data flow](docs/basic_flow.jpg)
+
+### Knack containers
+
+A "container" is a generic term to identify the source for a set of Knack application records. In Knack parlance, a container can refer to either a "view" (a UI component which exposes records in the application) or an "object" (the equivalent to a database table).
+
+"Container" is not a Knack term; it is endemic to our team and carried forth from [Knackpy](https://github.com/cityofaustin/knackpy), and it is universally meant to refer to either a view or object key which uniquely identifies the resource in a given application.
+
+### Incremental loading
+
+These services are designed to keep Knack application data in sync with external systems efficiently by only processing records which have been created or modified during a given timeframe. By _incrementally_ processing new or modified records it possible to maintain a low level of latency between a Knack application and its dependents without placing undue demand on the Knack application stack, even when managing large datasets.
+
+Incremental loading is made possible by referencing a record's timestamps throughout the pipleine. Specifically:
+
+- The [Knack configuration file](#knack-config) requires that all entries include a `modified_date_field_id`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in funcionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
+
+- The [Postges data store](#postgres-data-store) relies on a stored procedure to maintain an `updated_at` timestamp which is set to the current datetime whenever a record is created or modified.
+
+- The processing scripts in this repository accept a `--date` flag which will be used as a filter when extracting records from the Knack application or the Postgres database. Only records which were modified on or after this date will be ingested into the ETL pipeline.
 
 ## System Architecture
 
@@ -83,7 +98,7 @@ If you'd like to run locally in Docker, create an [environment file](https://doc
 $ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
 ```
 
-### Knack config (`services/config/knack.py`)
+### Knack config
 
 Each Knack container which will be processed must have configuration parameters defined in `services/config/knack.py`, as follows:
 
@@ -195,3 +210,11 @@ An end-to-end ETL process will involve creating at least three Airflow tasks:
 - Load app metadata to Postgres
 - Load Knack records to Postgres
 - Publish Knack records to destination system
+
+## TODO
+
+- document docker CI
+- disable legacy publisher for those that have been migrated
+- document field matching. think about field mapping...
+- staging instance
+- document Truncating/replacing
