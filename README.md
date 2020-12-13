@@ -2,6 +2,8 @@
 
 ATD Knack Services is a set of python modules which automate the flow of data from ATD's Knack applications to downstream systems.
 
+![basic data flow](docs/basic_flow.jpg)
+
 ## Contents
 
 - [Core Concepts](#core-concepts)
@@ -17,8 +19,6 @@ These utilities are designed to:
 - Incrementally fetch records and publish them to external systems such as Socrata and ArcGIS Online
 - Lay the groundwork for further integration with a data lake and/or a data warehouse
 - Be deployed in Airflow or similar task management frameworks
-
-![basic data flow](docs/basic_flow.jpg)
 
 ### Knack containers
 
@@ -38,9 +38,9 @@ Incremental loading is made possible by referencing a record's timestamp through
 
 - The processing scripts in this repository accept a `--date` flag which will be used as a filter when extracting records from the Knack application or the Postgres database. Only records which were modified on or after this date will be ingested into the ETL pipeline.
 
-In order to achieve incremental loads when writing data, these services require that destination system support an "upsert" method. Although both Postgres(t) and Socrata support upserting, ArcGIS Online does not*. In such cases, a full replace of the destination dataset is applied on each ETL run. See `[Publish records to ArcGIS Online](#publish-records-to-arcgis-online) for more details.
+In order to achieve incremental loads when writing data, these services require that destination system support an "upsert" method. Although both Postgres(t) and Socrata support upserting, ArcGIS Online does not\*. In such cases, a full replace of the destination dataset is applied on each ETL run. See `[Publish records to ArcGIS Online](#publish-records-to-arcgis-online) for more details.
 
-*The ArcGIS Python API claims support for an uspert method, documented [here]( https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer), but we abandoned this approach after repeated attempts to debug cryptic error messages.
+\*The ArcGIS Python API claims support for an uspert method, documented [here](https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer), but we abandoned this approach after repeated attempts to debug cryptic error messages.
 
 ## System Architecture
 
