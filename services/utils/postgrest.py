@@ -83,7 +83,7 @@ class Postgrest(object):
             resource=resource, method="delete", headers=headers, params=params
         )
 
-    def select(self, resource, params={}, pagination=True, headers=None):
+    def select(self, resource, params=None, pagination=True, headers=None):
         """Fetch selected records from PostgREST. See documentation for horizontal
         and vertical filtering at http://postgrest.org/.
 
@@ -98,6 +98,7 @@ class Postgrest(object):
         Returns:
             List: A list of dicts of data returned from the host
         """
+        params = {} if not params else params
         limit = params.get("limit", math.inf)
         params.setdefault("offset", 0)
         records = []
