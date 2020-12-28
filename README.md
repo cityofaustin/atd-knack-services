@@ -193,6 +193,8 @@ The field's display name can be freely-defined, but the field name must be `id` 
 
 If you have a conflicting field in your Knack data named "ID", you should as general best practice rename it. If you absolutely must keep your "ID" field in Knack, this column name will be translated to `_id` when publishing to Socrata, so configure your dataset accordingly.
 
+With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces with underscores and making all characters lowercase.
+
 ```shell
 $ python records_to_socrata.py \
     -a data-tracker \
