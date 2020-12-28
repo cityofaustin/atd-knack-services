@@ -95,8 +95,8 @@ The required environmental variables for using these scripts are:
 
 - `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service
 - `AGOL_PASSWORD`: The ArcGIS Online account password
-- `APP_ID`: The Knack App ID of the application you need to access
-- `API_KEY`: The Knack API key of the application you need to access
+- `KNACK_APP_ID`: The Knack App ID of the application you need to access
+- `KNACK_API_KEY`: The Knack API key of the application you need to access
 - `SOCRATA_USERNAME`: A Socrata user name that has access to the destination Socrata dataset
 - `SOCRATA_PASSWORD`: The Socrata account password
 - `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
@@ -237,7 +237,7 @@ TODO
 
 ### Dealing with schema changes
 
-To avoid repeated API calls, Knack app metadata is stored alongside records in the Postgres database. This means that schema changes in your Knack app need to be kept in sync with Postgres in order to ensure that records published to downstream systems reflect these changes. As such, you should update the Knack metadata stored in Postgres whenever you make a schema to container. After updating the metadata, you should also run a full replacement of the Knack record data from Knack to Postgres, and from Postgres to any downstream recipients.
+To avoid repeated API calls, Knack app metadata is stored alongside records in the Postgres database. This means that schema changes in your Knack app need to be kept in sync with Postgres in order to ensure that records published to downstream systems reflect these changes. As such, you should update the Knack metadata stored in Postgres whenever you make a schema change to a container. After updating the metadata, you should also run a full replacement of the Knack record data from Knack to Postgres, and from Postgres to any downstream recipients.
 
 ### Other
 
