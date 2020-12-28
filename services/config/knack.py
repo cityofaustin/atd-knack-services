@@ -36,5 +36,13 @@ CONFIG = {
             "socrata_resource_id": "v7vh-gbi6",
             "location_fields": ["field_182"]
         },
+    },
+    "signs-markings": {
+        "view_3304": {
+            "description": "Markings Specifications",
+            "scene": "scene_1249",
+            "modified_date_field": "field_3365",
+            "socrata_resource_id": "dp8d-apw9",
+        },
     }
 }
