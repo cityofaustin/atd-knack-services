@@ -7,7 +7,6 @@ import knackpy
 from config.knack import CONFIG
 import utils
 
-
 def handle_floating_timestamps(records, floating_timestamp_fields):
     """ Socrata's fixed timestamp dataType does not allow tz info :(
         (Alternatively, one could setup a transform in Socrata to convert the datatype
@@ -23,10 +22,11 @@ def handle_floating_timestamps(records, floating_timestamp_fields):
     return records
 
 
-def lower_case_keys(records):
+def format_keys(records):
     """ This script assumes that the source knack records' field labels map exactly
-    to the socrata API column names, given that they are converted to lower case"""
-    return [{key.lower(): val for key, val in record.items()} for record in records]
+    to the socrata API column names, given that they are converted to lower case and
+    spaces are replaced with underscores."""
+    return [{key.lower().replace(" ", "_"): val for key, val in record.items()} for record in records]
 
 
 def bools_to_strings(records):
@@ -119,7 +119,7 @@ def main():
 
     # apply transforms to meet socrata's expectations
     payload = [record.format() for record in records]
-    payload = lower_case_keys(payload)
+    payload = format_keys(payload)
     bools_to_strings(payload)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
@@ -127,6 +127,7 @@ def main():
     handle_floating_timestamps(payload, floating_timestamp_fields)
 
     method = "upsert" if args.date else "replace"
+
     utils.socrata.publish(
         method=method, resource_id=resource_id, payload=payload, client=client_socrata
     )

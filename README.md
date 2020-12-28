@@ -9,9 +9,9 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
 - [Core Concepts](#core-concepts)
 - [System Architecture](#system-architecture)
 - [Configuration](#configuration)
-- [Services](#services-(`/services`))
-- [Utils](#utils-(`/services/utils`))
-- [Maintenance](#maintenance)
+- [Services](<#services-(`/services`)>)
+- [Utils](<#utils-(`/services/utils`)>)
+- [Common Tasks](#common-tasks)
 
 ## Core concepts
 
@@ -43,6 +43,10 @@ Incremental loading is made possible by referencing a record's timestamp through
 In order to achieve incremental loads when writing data, these services require that destination system support an "upsert" method. Although both Postgres(t) and Socrata support upserting, ArcGIS Online does not\*. In such cases, a full replace of the destination dataset is applied on each ETL run. See `[Publish records to ArcGIS Online](#publish-records-to-arcgis-online) for more details.
 
 \*The ArcGIS Python API claims support for an uspert method, documented [here](https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer), but we abandoned this approach after repeated attempts to debug cryptic error messages.
+
+## Security Considerations
+
+Knack's built-in record IDs are used as primary keys throughout this pipeline, and are exposed in [any public datasets](#publish-records-to-the-open-data-portal) to which data is published. Be aware that if your Knack app exposes public pages that rely on the obscurity of a Knack record ID to prevent unwanted visitors, you should not use this ETL pipeline to publish any data from such containers.
 
 ## System Architecture
 
@@ -167,9 +171,29 @@ $ python records_to_postgrest.py \
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
+### Load Knack metadata to Postgres
+
+```shell
+$ python metadata_to_postrest.py
+```
+
+#### CLI arguments
+
+None. Ensure your `KNACK_APP_ID` environmental variable is set to the app whose metadata you will be publish.
+
 ### Publish records to the open data portal
 
+#### Socrata Dataset Configuration
+
 Use `records_to_socrata.py` to publish a Knack container to the Open Data Portal (aka, Socrata).
+
+When publishing Knack data to a Socrata dataset, the Socrata dataset must be configured with an ID field which will be automatically populated with Knack's built-in record IDs.
+
+The field's display name can be freely-defined, but the field name must be `id` and they field type must be `text`. This field must also be assigned as the dataset's [row identifer](https://support.socrata.com/hc/en-us/articles/360008065493) to ensure that upserts are handled properly.
+
+If you have a conflicting field in your Knack data named "ID", you should as general best practice rename it. If you absolutely must keep your "ID" field in Knack, this column name will be translated to `_id` when publishing to Socrata, so configure your dataset accordingly.
+
+With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces with underscores and making all characters lowercase.
 
 ```shell
 $ python records_to_socrata.py \
@@ -209,7 +233,13 @@ The package contains utilities for fetching and pushing data between Knack appli
 
 TODO
 
-## Maintenance
+## Common Tasks
+
+### Dealing with schema changes
+
+To avoid repeated API calls, Knack app metadata is stored alongside records in the Postgres database. This means that schema changes in your Knack app need to be kept in sync with Postgres in order to ensure that records published to downstream systems reflect these changes. As such, you should update the Knack metadata stored in Postgres whenever you make a schema to container. After updating the metadata, you should also run a full replacement of the Knack record data from Knack to Postgres, and from Postgres to any downstream recipients.
+
+### Other
 
 - Configure a new container
 - Schema changes/updating metadata
