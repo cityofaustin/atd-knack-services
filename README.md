@@ -235,24 +235,29 @@ TODO
 
 ## Common Tasks
 
+### Configuring a Knack container
+
+Because [Knack views](https://support.knack.com/hc/en-us/articles/226221788-About-Views) allow you to add columns from multiple objects to a single table, they will generally be your container of choice (as opposed to an "object") for surfacing data that will be published to other systems.
+
+We have adopted the convention of dedicating part of each Knack application to an "API Views" page which contains any tables in that app that are used for integration purposes. 
+
+When creating an API view, simply build a table view with the the relevant columns. Be aware that field name handling is specific to each script in `/services`, but in general the field names in the destination dataset need to match the field name in the Knack source _object_, even when the source container is a view. Re-naming a field _in the view itself_ has no effect on the field names used in the ETL. This is a limitation of the Knack API, which does not readily expose the field names in views. See the documentation for each particular service for more details on field name handling..
+
+Note also that that. as a best practice, you should not use connection fields in  Knack API view, because the value in that field will be the "[Display Field](https://support.knack.com/hc/en-us/articles/226588888-Working-With-Objects#edit-objects)" value as it is configured for the object. If someone were to change the display field for that object, it could break the ETL. Instead, when you're adding columns to the view, use the object drop-down menu to pick the related object, then add the field from that object that you want in the view.
+
 ### Dealing with schema changes
 
 To avoid repeated API calls, Knack app metadata is stored alongside records in the Postgres database. This means that schema changes in your Knack app need to be kept in sync with Postgres in order to ensure that records published to downstream systems reflect these changes. As such, you should update the Knack metadata stored in Postgres whenever you make a schema change to a container. After updating the metadata, you should also run a full replacement of the Knack record data from Knack to Postgres, and from Postgres to any downstream recipients.
 
+### Automate tasks with Airflow and Docker
+
+See [atd-airflow](https://github.com/cityofaustin/atd-airflow) for examples of how these services can be deployed to run on a schedule. Airflow deployments rely on Docker, and this repo includes a `Dockerfile` which defines the runtime environment for all services, and is automatically built and pushed to DockerHub using Github actions.
+
+If you add a Python package dependency to any service, adding that package to `requirements.txt` is enough to ensure that the next Docker build will include that package in the environment. Our Airflow instance refreshes its DAG's Docker containers every 5 minutes, so it will always be running the latest environment. 
+
 ### Other
 
-- Configure a new container
-- Schema changes/updating metadata
-- Adding a new destination dataset
 - Extending/development
-
-## Deployment
-
-An end-to-end ETL process will involve creating at least three Airflow tasks:
-
-- Load app metadata to Postgres
-- Load Knack records to Postgres
-- Publish Knack records to destination system
 
 ## TODO
 
