@@ -11,10 +11,10 @@ CONFIG = {
             "scene": "scene_73",
             "modified_date_field": "field_205",
             "socrata_resource_id": "p53x-x73x",
-            "location_fields": ["field_182"],
+            "location_field": ["field_182"],
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
             "layer_id": 0,
-            "upsert_matching_field": "SIGNAL_ID"
+            "upsert_matching_field": "SIGNAL_ID",
         },
         "view_395": {
             "description": "CCTV Cameras",
@@ -34,15 +34,50 @@ CONFIG = {
             "scene": "scene_514",
             "modified_date_field": "field_1385",
             "socrata_resource_id": "v7vh-gbi6",
-            "location_fields": ["field_182"]
+            "location_fields": ["field_182"],
         },
     },
     "signs-markings": {
         "view_3304": {
-            "description": "Markings Specifications",
+            "description": "Markings specifications",
             "scene": "scene_1249",
             "modified_date_field": "field_3365",
             "socrata_resource_id": "dp8d-apw9",
         },
-    }
+        "view_3105": {
+            "description": "Signs work order locations",
+            "scene": "scene_1249",
+            "modified_date_field": "field_3383",
+        },
+        "view_3106": {
+            "description": "Signs asset specification actuals",
+            "scene": "scene_1249",
+            "modified_date_field": "field_3365",
+        },
+        "view_3107": {
+            "description": "Signs work orders",
+            "scene": "scene_1249",
+            "modified_date_field": "field_3206",
+        },
+        "view_3126": {
+            "description": "Signs and markings work order materials",
+            "scene": "scene_1249",
+            "modified_date_field": "field_771",
+        },
+        "view_3127": {
+            "description": "Signs & markings work order attachments",
+            "scene": "scene_1249",
+            "modified_date_field": "object_153",
+        },
+    },
+    "finance-purchasing": {
+        "view_788": {
+            "description": "Inventory items",
+            "scene": "scene_84",
+            "modified_date_field": "field_374",
+            "knack_dest_app": "data-tracker",
+            "knack_dest_obj": "object_15",
+            "knack_matching_field_name": "commodity something",
+        },
+    },
 }
