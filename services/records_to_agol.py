@@ -19,12 +19,13 @@ PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 
 
 def main():
-    args = utils.args.cli_args(["app-name", "container", "env"])
+    args = utils.args.cli_args(["app-name", "container"])
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
     location_field_id = config.get("location_field_id")
     service_id = config["service_id"]
     layer_id = config["layer_id"]
+    item_type = config["item_type"]
 
     client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
     metadata_knack = utils.postgrest.get_metadata(client_postgrest, APP_ID)
@@ -51,7 +52,14 @@ def main():
 
     gis = arcgis.GIS(url=URL, username=USERNAME, password=PASSWORD)
     service = gis.content.get(service_id)
-    layer = service.layers[layer_id]
+
+    if item_type == "layer":
+        layer = service.layers[layer_id]
+    elif item_type == "table":
+        layer = service.tables[layer_id]
+    else:
+        raise ValueError(f"Unknown item_type specified: {item_type}")
+
     features = [
         utils.agol.build_feature(record, SPATIAL_REFERENCE, location_field_id)
         for record in records

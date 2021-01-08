@@ -13,6 +13,7 @@ CONFIG = {
             "socrata_resource_id": "p53x-x73x",
             "location_field_id": "field_182",
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
+            "item_type": "layer",
             "layer_id": 0,
             "upsert_matching_field": "SIGNAL_ID",
         },
@@ -68,6 +69,9 @@ CONFIG = {
             "description": "Signs & markings work order attachments",
             "scene": "scene_1249",
             "modified_date_field": "object_153",
+            "service_id": "93e29b23c39b4110ab0bbefde79b4063",
+            "item_type": "table",
+            "layer_id": 0,
         },
     },
     "finance-purchasing": {
