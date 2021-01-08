@@ -22,7 +22,7 @@ def main():
     args = utils.args.cli_args(["app-name", "container", "env"])
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
-    location_fields = config.get("location_fields")
+    location_field_id = config.get("location_field_id")
     service_id = config["service_id"]
     layer_id = config["layer_id"]
 
@@ -53,7 +53,7 @@ def main():
     service = gis.content.get(service_id)
     layer = service.layers[layer_id]
     features = [
-        utils.agol.build_feature(record, SPATIAL_REFERENCE, location_fields[0])
+        utils.agol.build_feature(record, SPATIAL_REFERENCE, location_field_id)
         for record in records
     ]
     """

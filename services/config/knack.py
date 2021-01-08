@@ -11,7 +11,7 @@ CONFIG = {
             "scene": "scene_73",
             "modified_date_field": "field_205",
             "socrata_resource_id": "p53x-x73x",
-            "location_field": ["field_182"],
+            "location_field_id": "field_182",
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
             "layer_id": 0,
             "upsert_matching_field": "SIGNAL_ID",
@@ -21,7 +21,7 @@ CONFIG = {
             "scene": "scene_144",
             "modified_date_field": "field_714",
             "socrata_resource_id": "b4k4-adkb",
-            "location_fields": ["field_182"],
+            "location_field_id": "field_182",
         },
         "view_2681": {
             "description": "MMC activities",
@@ -34,7 +34,7 @@ CONFIG = {
             "scene": "scene_514",
             "modified_date_field": "field_1385",
             "socrata_resource_id": "v7vh-gbi6",
-            "location_fields": ["field_182"],
+            "location_field_id": "field_182",
         },
     },
     "signs-markings": {
