@@ -12,13 +12,35 @@ def sanitize_html(record, field_names):
     return record
 
 
-def point_geometry(knack_address_field, spatial_reference):
+def point_geometry(knack_address_dict, spatial_reference):
     # see: https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm  # noqa E501
     point = {}
+    x = knack_address_dict["longitude"]
+    y = knack_address_dict["latitude"]
+    if not x and not y:
+        # knack may hold emptry strings in these positions :(
+        return None
     point["spatialReference"] = {"wkid": spatial_reference}
-    point["x"] = knack_address_field["longitude"]
-    point["y"] = knack_address_field["latitude"]
+    point["x"] = x
+    point["y"] = y
     return point
+
+
+def multipoint_geometry(knack_address_list, spatial_reference):
+    # see: https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm  # noqa E501
+    points = {"points": []}
+    points["spatialReference"] = {"wkid": spatial_reference}
+    for knack_address in knack_address_list:
+        x = knack_address["longitude"]
+        y = knack_address["latitude"]
+        if x and y:
+            # knack may hold emptry strings in these positions :(
+            points["points"].append(
+                [knack_address["longitude"], knack_address["latitude"]]
+            )
+    if not points["points"]:
+        return None
+    return points
 
 
 def build_feature(
@@ -27,9 +49,15 @@ def build_feature(
     feature = {}
     feature["attributes"] = sanitize_html(record.format(), fields_names_to_sanitize)
     if location_field_id:
-        feature["geometry"] = point_geometry(
-            record[location_field_id], spatial_reference
-        )
+        record_geometry = record[location_field_id]
+        if not record_geometry:
+            pass
+        elif isinstance(record_geometry, dict):
+            feature["geometry"] = point_geometry(record_geometry, spatial_reference)
+        elif isinstance(record_geometry, list):
+            feature["geometry"] = multipoint_geometry(
+                record_geometry, spatial_reference
+            )
     return feature
 
 

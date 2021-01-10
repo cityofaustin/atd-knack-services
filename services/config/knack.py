@@ -61,6 +61,7 @@ CONFIG = {
             "service_id": "93e29b23c39b4110ab0bbefde79b4063",
             "layer_id": 1,
             "item_type": "layer",
+            "location_field_id": "field_3300",
         },
         "view_3126": {
             "description": "Signs and markings work order materials",
