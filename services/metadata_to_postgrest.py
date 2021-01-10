@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Upload Knack metadata to Postgrest.
-"""
+"""Upload Knack metadata to Postgrest"""
 import os
 
 import knackpy
