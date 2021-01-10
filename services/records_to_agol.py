@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""Download *all* records from PostgREST and *replace* destination layer in
-ArcGIS Online"""
+"""Download records from PostgREST and upsert to destination layer in ArcGIS Online"""
 import os
 import time
 
