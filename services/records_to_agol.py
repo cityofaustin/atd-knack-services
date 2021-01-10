@@ -2,8 +2,10 @@
 """Download *all* records from PostgREST and *replace* destination layer in
 ArcGIS Online"""
 import os
+import time
 
 import arcgis
+import arrow
 import knackpy
 
 import utils
@@ -18,8 +20,18 @@ PGREST_JWT = os.getenv("PGREST_JWT")
 PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i : i + n]
+
+
+def format_filter_date(date_from_args):
+    return "1970-01-01" if not date_from_args else arrow.get(date_from_args).isoformat()
+
+
 def main():
-    args = utils.args.cli_args(["app-name", "container"])
+    args = utils.args.cli_args(["app-name", "container", "date"])
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
     location_field_id = config.get("location_field_id")
@@ -31,7 +43,9 @@ def main():
     metadata_knack = utils.postgrest.get_metadata(client_postgrest, APP_ID)
     app = knackpy.App(app_id=APP_ID, metadata=metadata_knack)
 
-    logger.info(f"Downloading records from app {APP_ID}, container {container}.")
+    logger.debug(f"Downloading records from app {APP_ID}, container {container}.")
+
+    filter_iso_date_str = format_filter_date(args.date)
 
     data = client_postgrest.select(
         "knack",
@@ -39,16 +53,24 @@ def main():
             "select": "record",
             "app_id": f"eq.{APP_ID}",
             "container_id": f"eq.{container}",
+            "updated_at": f"gte.{filter_iso_date_str}",
         },
     )
 
-    logger.info(f"{len(data)} to process.")
+    logger.debug(f"{len(data)} to process.")
 
     if not data:
         return
 
     app.data[container] = [r["record"] for r in data]
     records = app.get(container)
+
+    fields_names_to_sanitize = [
+        f.name
+        for f in app.field_defs
+        if f.type in ["short_text", "paragraph_text"]
+        and (f.obj == container or container in f.views)
+    ]
 
     gis = arcgis.GIS(url=URL, username=USERNAME, password=PASSWORD)
     service = gis.content.get(service_id)
@@ -60,21 +82,59 @@ def main():
     else:
         raise ValueError(f"Unknown item_type specified: {item_type}")
 
+    logger.debug("Building features...")
+
     features = [
-        utils.agol.build_feature(record, SPATIAL_REFERENCE, location_field_id)
+        utils.agol.build_feature(
+            record, SPATIAL_REFERENCE, location_field_id, fields_names_to_sanitize
+        )
         for record in records
     ]
-    """
-    The arcgis package does have a method that supports upserting: append()
-    https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer  # noqa E501
 
-    However this method errored out on multiple datasets and i gave up.
-    layer.append(
-        edits=features, upsert=True, upsert_matching_field="id"
-    )
-    """
-    layer.manager.truncate()
-    layer.edit_features(adds=features)
+    if not args.date:
+        """
+        Completely replace destination data. arcgis does have layer.manager.truncate()
+        method, but this method is not supported on the parent layer of parent-child
+        relationships. So we truncate the layer by deleteing with a "where 1=1"
+        expression. We use the "future" option to avoid request timeouts on large
+        datasets.
+        """
+        logger.debug("Deleting all features...")
+        res = layer.delete_features(where="1=1", future=True)
+        # returns a "<Future>" response class which does not appear to be documented
+        while res._state != "FINISHED":
+            logger.debug(f"<Future> state: {res._state}. Sleeping for 1 second")
+            # TODO: handle a response from the Future class
+            time.sleep(1)
+    else:
+        """
+        Simulate an upsert by deleting features from AGOL if they exist. 
+        
+        The arcgis package does have a method that supports upserting: append()
+        https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer  # noqa E501
+
+        However this method errored out on multiple datasets and i gave up.
+        layer.append(
+            edits=features, upsert=True, upsert_matching_field="id"
+        )
+        """
+        logger.debug(f"Deleting {len(features)} features...")
+
+        key = "id"
+        keys = [f'\'{f["attributes"][key]}\'' for f in features]
+        for key_chunk in chunks(keys, 100):
+            key_list_stringified = ",".join(key_chunk)
+            res = layer.delete_features(
+                where=f"{key} in ({key_list_stringified})", future=True
+            )
+            utils.agol.handle_response(res)
+
+    logger.debug("Uploading features....")
+
+    for features_chunk in chunks(features, 500):
+        logger.debug("Uploading chunk...")
+        res = layer.edit_features(adds=features_chunk)
+        utils.agol.handle_response(res)
 
 
 if __name__ == "__main__":
