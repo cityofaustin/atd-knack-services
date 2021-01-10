@@ -45,26 +45,25 @@ def find_field_def(field_defs, field_id):
         raise ValueError(f"Unable to find fieldDef for {field_id}")
 
 
-def patch_formatters(field_defs, location_fields, metadata_socrata):
+def patch_formatters(field_defs, location_field_id, metadata_socrata):
     """Replace knackpy's default address fomatter with a custom socrata formatter for
     either `point` or `location` field types. `location` types are a legacy field
     type, so we have to munge the socrata metadata to determine which type(s) our
     dataset uses."""
-    for field_id in location_fields:
-        knackpy_field_def = find_field_def(field_defs, field_id)
-        field_name_knack = knackpy_field_def.name
-        socrata_field_type = utils.socrata.get_field_type_by_field_name(
-            field_name_knack.lower(), metadata_socrata
+    knackpy_field_def = find_field_def(field_defs, location_field_id)
+    field_name_knack = knackpy_field_def.name
+    socrata_field_type = utils.socrata.get_field_type_by_field_name(
+        field_name_knack.lower(), metadata_socrata
+    )
+    if socrata_field_type == "point":
+        formatter_func = utils.knack.socrata_formatter_point
+    elif socrata_field_type == "location":
+        formatter_func = utils.knack.socrata_formatter_location
+    else:
+        raise ValueError(
+            f"Socrata data type for {location_field_id} ({field_name_knack}) is not a `point` or `location` type"  # noqa:E501
         )
-        if socrata_field_type == "point":
-            formatter_func = utils.knack.socrata_formatter_point
-        elif socrata_field_type == "location":
-            formatter_func = utils.knack.socrata_formatter_location
-        else:
-            raise ValueError(
-                f"Socrata data type for {field_id} ({field_name_knack}) is not a `point` or `location` type"  # noqa:E501
-            )
-        knackpy_field_def.formatter = formatter_func
+    knackpy_field_def.formatter = formatter_func
 
 
 def format_filter_date(date_from_args):
@@ -76,13 +75,13 @@ def main():
     PGREST_JWT = os.getenv("PGREST_JWT")
     PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 
-    args = utils.args.cli_args(["app-name", "container", "env", "date"])
+    args = utils.args.cli_args(["app-name", "container", "date"])
     logger.info(args)
 
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
 
-    location_fields = config.get("location_fields")
+    location_field_id = config.get("location_field_id")
     client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
     metadata_knack = utils.postgrest.get_metadata(client_postgrest, APP_ID)
     app = knackpy.App(app_id=APP_ID, metadata=metadata_knack)
@@ -109,8 +108,8 @@ def main():
     resource_id = config["socrata_resource_id"]
     metadata_socrata = client_socrata.get_metadata(resource_id)
 
-    if location_fields:
-        patch_formatters(app.field_defs, location_fields, metadata_socrata)
+    if location_field_id:
+        patch_formatters(app.field_defs, location_field_id, metadata_socrata)
 
     # side-load knack data so we can utilize knackpy Record class for formatting
     app.data[container] = [r["record"] for r in data]

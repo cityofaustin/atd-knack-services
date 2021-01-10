@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-""" Download Knack records and upload to S3 """
+""" Download Knack records and upload to Postgres(t) """
 from multiprocessing.dummy import Pool
 import os
 
@@ -57,7 +57,7 @@ def main():
     PGREST_JWT = os.getenv("PGREST_JWT")
     PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 
-    args = utils.args.cli_args(["app-name", "container", "env", "date"])
+    args = utils.args.cli_args(["app-name", "container", "date"])
     logger.info(args)
 
     app_config = CONFIG.get(args.app_name).get(args.container)
