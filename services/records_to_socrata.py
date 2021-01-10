@@ -75,7 +75,7 @@ def main():
     PGREST_JWT = os.getenv("PGREST_JWT")
     PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 
-    args = utils.args.cli_args(["app-name", "container", "env", "date"])
+    args = utils.args.cli_args(["app-name", "container", "date"])
     logger.info(args)
 
     container = args.container
