@@ -123,9 +123,7 @@ def main():
         keys = [f'\'{f["attributes"][key]}\'' for f in features]
         for key_chunk in chunks(keys, 100):
             key_list_stringified = ",".join(key_chunk)
-            res = layer.delete_features(
-                where=f"{key} in ({key_list_stringified})", future=True
-            )
+            res = layer.delete_features(where=f"{key} in ({key_list_stringified})")
             utils.agol.handle_response(res)
 
     logger.debug("Uploading features....")
