@@ -105,7 +105,7 @@ The required environmental variables for using these scripts are:
 If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. For development purpsoses, this command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
 
 ```
-$ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11 -e prod
+$ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11
 ```
 
 ### Knack config
@@ -139,18 +139,16 @@ CONFIG = {
 
 ### Load app metadata to Postgres
 
-Use `metadata_to_postgrest.py` to load an application's metadata to Postgres.
+Use `metadata_to_postgrest.py` to load an application's metadata to Postgres. Metadata
+will be proessed for the app ID provided in the `KNACK_APP_ID` environmental variable.
 
 ```shell
-$ python metadata_to_postgrest.py \
-    --app-name data-tracker \
-    --env prod \
+$ python metadata_to_postgrest.py
 ```
 
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
-- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 
 ### Load knack records to Postgres
 
@@ -160,14 +158,12 @@ Use `records_to_postgrest.py` to incrementally load data from a Knack container 
 $ python records_to_postgrest.py \
     -a data-tracker \
     -c view_1 \
-    -e prod \
     -d "2020-09-08T09:21:08-05:00"
 ```
 
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
-- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
@@ -199,7 +195,6 @@ With the exception of the ID field, all Knack field names will be translated to 
 $ python records_to_socrata.py \
     -a data-tracker \
     -c view_1 \
-    -e prod \
     -d "2020-09-08T09:21:08-05:00"
 ```
 
@@ -207,25 +202,36 @@ $ python records_to_socrata.py \
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
-- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ### Publish records to ArcGIS Online
 
-Use `records_to_agol.py` to publish a Knack container to an ArcGIS Online layer. Note that publishing to AGOL always inolves a complete truncate and replacee. Date filtering is not supported.
+Use `records_to_agol.py` to publish a Knack container to an ArcGIS Online layer. 
+
+#### About timestamps
+
+AGOL stores all timestamps in UTC time. That means, for example, that when you see a “Created Date” field on a sign work order in AGOL, the time is displayed in UTC, not local time.
+In the old ETL pipeline, we were offsetting our timestamps to essentially trick AGOL so that it displayed timestamps in local time. This makes make it easier for our users to work with the data, because they don’t have to worry about timestamp conversions—but it adds overhead to the ETL and is really not ideal from a data quality perspective.
+
+This ETL popeline does not do this timestamp conversion—timestamps will be shown in UTC time. Unfortunately, this is not very transparent in AGOL, because they don’t include the timezone name or offset in the data.
+
+
+#### About geometries
+
+This service currently supports Esri's `point` and `multipoint` [geometry types](https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm). The geometry type is detected automatically based on a Knack record's location field type. A simple point geometry is used when the location field's value is a single `dict` object with latitude and longitude properties. A multipoint geometry will be created if the location field's value is an array type (ie, the field is member a child record in a one-many relationship).
+
 
 ```shell
 $ python records_to_agol.py \
     -a data-tracker \
     -c view_1 \
-    -e prod \
+    -d 2021-01-01
 ```
 
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
-- `--env, -e` (`str`, required): The application environment. Must be `prod` or `dev`.
 
 ## Utils (`/services/utils`)
 
