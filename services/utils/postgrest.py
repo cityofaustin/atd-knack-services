@@ -8,7 +8,9 @@ import requests
 def get_metadata(client, app_id):
     """A helper func which fetches an app's metadata based on the provided app_id str"""
     results = client.select(
-        "knack_metadata", params={"app_id": f"eq.{app_id}", "limit": 1}
+        "knack_metadata",
+        params={"app_id": f"eq.{app_id}", "limit": 1},
+        pagination=False,
     )
     if results:
         return results[0]["metadata"]
@@ -83,17 +85,26 @@ class Postgrest(object):
             resource=resource, method="delete", headers=headers, params=params
         )
 
-    def select(self, resource, params=None, pagination=True, headers=None):
+    def select(
+        self, resource, params=None, pagination=True, headers=None, order_by=None
+    ):
         """Fetch selected records from PostgREST. See documentation for horizontal
         and vertical filtering at http://postgrest.org/.
 
         Args:
-            params (dict): PostgREST-compliant request parameters.
-
+            resource (str): Required. The postgrest's endpoint's table or view name to
+                query.
+            headers (dict): Custom PostgREST headers which will be passed to the
+                request. Defaults to None.
+            order_by (str): Field name to use a sort field when querying records. This
+                must be provided when pagniation=True to ensure that the DB returns
+                consistent results across all pages/offsets.
             pagination (bool): If the client should make repeated requests until etiher:
-            -  the limit param (if present) is met
-            -  if no limit param is included, until no more records are returned from
-            the API.
+                -  the limit param (if present) is met
+                -  if no limit param is included, until no more records are returned from
+                    the API.
+                Defaults to True.
+            params (dict): PostgREST-compliant request parameters. Defaults to None.
 
         Returns:
             List: A list of dicts of data returned from the host
@@ -101,6 +112,13 @@ class Postgrest(object):
         params = {} if not params else params
         limit = params.get("limit", math.inf)
         params.setdefault("offset", 0)
+        params["order"] = order_by
+
+        if pagination and not order_by:
+            raise ValueError(
+                "It's not reliable to paginate requests without specifying an 'order_by' field"
+            )
+
         records = []
         headers = self._get_request_headers(headers)
 
@@ -109,6 +127,7 @@ class Postgrest(object):
                 resource=resource, method="get", headers=headers, params=params
             )
             records += data
+
             if not data or len(records) >= limit or not pagination:
                 # Postgrest has a max-rows configuration setting which limits the total
                 # number of rows that can be returned from a request. when the the

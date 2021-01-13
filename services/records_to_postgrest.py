@@ -75,6 +75,7 @@ def main():
     logger.info("Downloading records from Knack...")
 
     kwargs = container_kwargs(container, app_config)
+
     records = knackpy.api.get(
         app_id=APP_ID, api_key=API_KEY, filters=filters, **kwargs,
     )
@@ -89,7 +90,7 @@ def main():
     client = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
 
     if not args.date:
-        # if no date is provided, we're do a full a replace of the data
+        # if no date is provided, we do a full a replace of the data
         client.delete(
             "knack",
             params={"container_id": f"eq.{container}", "app_id": f"eq.{APP_ID}"},

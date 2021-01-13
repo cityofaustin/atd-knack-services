@@ -7,6 +7,7 @@ import knackpy
 from config.knack import CONFIG
 import utils
 
+
 def handle_floating_timestamps(records, floating_timestamp_fields):
     """ Socrata's fixed timestamp dataType does not allow tz info :(
         (Alternatively, one could setup a transform in Socrata to convert the datatype
@@ -26,7 +27,10 @@ def format_keys(records):
     """ This script assumes that the source knack records' field labels map exactly
     to the socrata API column names, given that they are converted to lower case and
     spaces are replaced with underscores."""
-    return [{key.lower().replace(" ", "_"): val for key, val in record.items()} for record in records]
+    return [
+        {key.lower().replace(" ", "_"): val for key, val in record.items()}
+        for record in records
+    ]
 
 
 def bools_to_strings(records):
@@ -97,6 +101,7 @@ def main():
             "container_id": f"eq.{container}",
             "updated_at": f"gte.{filter_iso_date_str}",
         },
+        order_by="updated_at",
     )
 
     logger.info(f"{len(data)} records to process")
