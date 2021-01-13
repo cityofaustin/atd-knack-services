@@ -54,6 +54,7 @@ def main():
             "container_id": f"eq.{container}",
             "updated_at": f"gte.{filter_iso_date_str}",
         },
+        order_by="updated_at"
     )
 
     logger.debug(f"{len(data)} to process.")
