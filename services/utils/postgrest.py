@@ -1,7 +1,6 @@
 from copy import deepcopy
 import json
 import math
-import warnings
 
 import requests
 
