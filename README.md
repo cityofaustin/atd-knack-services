@@ -40,10 +40,6 @@ Incremental loading is made possible by referencing a record's timestamp through
 
 - The processing scripts in this repository accept a `--date` flag which will be used as a filter when extracting records from the Knack application or the Postgres database. Only records which were modified on or after this date will be ingested into the ETL pipeline.
 
-In order to achieve incremental loads when writing data, these services require that destination system support an "upsert" method. Although both Postgres(t) and Socrata support upserting, ArcGIS Online does not\*. In such cases, a full replace of the destination dataset is applied on each ETL run. See `[Publish records to ArcGIS Online](#publish-records-to-arcgis-online) for more details.
-
-\*The ArcGIS Python API claims support for an uspert method, documented [here](https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer), but we abandoned this approach after repeated attempts to debug cryptic error messages.
-
 ## Security Considerations
 
 Knack's built-in record IDs are used as primary keys throughout this pipeline, and are exposed in [any public datasets](#publish-records-to-the-open-data-portal) to which data is published. Be aware that if your Knack app exposes public pages that rely on the obscurity of a Knack record ID to prevent unwanted visitors, you should not use this ETL pipeline to publish any data from such containers.
