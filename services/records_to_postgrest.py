@@ -62,7 +62,7 @@ def main():
 
     app_config = CONFIG.get(args.app_name).get(args.container)
 
-    if not config:
+    if not app_config:
         raise ValueError(
             f"No config entry found for app: {args.app_name}, container: {container}"
         )
