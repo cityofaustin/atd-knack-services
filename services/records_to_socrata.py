@@ -106,7 +106,7 @@ def main():
             "container_id": f"eq.{container}",
             "updated_at": f"gte.{filter_iso_date_str}",
         },
-        order_by="updated_at",
+        order_by="record_id",
     )
 
     logger.info(f"{len(data)} records to process")
