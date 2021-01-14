@@ -61,11 +61,14 @@ def main():
     logger.info(args)
 
     app_config = CONFIG.get(args.app_name).get(args.container)
+
+    if not config:
+        raise ValueError(
+            f"No config entry found for app: {args.app_name}, container: {container}"
+        )
+
     container = args.container
-
-    if not app_config:
-        raise ValueError(f"No config entry found for {args.app_name}, {container}")
-
+    
     modified_date_field = app_config["modified_date_field"]
 
     filters = utils.knack.date_filter_on_or_after(

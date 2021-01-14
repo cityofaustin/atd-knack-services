@@ -33,6 +33,12 @@ def main():
     args = utils.args.cli_args(["app-name", "container", "date"])
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
+
+    if not config:
+        raise ValueError(
+            f"No config entry found for app: {args.app_name}, container: {container}"
+        )
+
     location_field_id = config.get("location_field_id")
     service_id = config["service_id"]
     layer_id = config["layer_id"]
@@ -42,7 +48,7 @@ def main():
     metadata_knack = utils.postgrest.get_metadata(client_postgrest, APP_ID)
     app = knackpy.App(app_id=APP_ID, metadata=metadata_knack)
 
-    logger.debug(f"Downloading records from app {APP_ID}, container {container}.")
+    logger.info(f"Downloading records from app {APP_ID}, container {container}.")
 
     filter_iso_date_str = format_filter_date(args.date)
 
@@ -54,10 +60,10 @@ def main():
             "container_id": f"eq.{container}",
             "updated_at": f"gte.{filter_iso_date_str}",
         },
-        order_by="updated_at"
+        order_by="record_id",
     )
 
-    logger.debug(f"{len(data)} to process.")
+    logger.info(f"{len(data)} to process.")
 
     if not data:
         return
@@ -82,7 +88,7 @@ def main():
     else:
         raise ValueError(f"Unknown item_type specified: {item_type}")
 
-    logger.debug("Building features...")
+    logger.info("Building features...")
 
     features = [
         utils.agol.build_feature(
@@ -99,13 +105,14 @@ def main():
         expression. We use the "future" option to avoid request timeouts on large
         datasets.
         """
-        logger.debug("Deleting all features...")
+        logger.info("Deleting all features...")
         res = layer.delete_features(where="1=1", future=True)
         # returns a "<Future>" response class which does not appear to be documented
         while res._state != "FINISHED":
-            logger.debug(f"<Future> state: {res._state}. Sleeping for 1 second")
-            # TODO: handle a response from the Future class
+            logger.info(f"Response state: {res._state}. Sleeping for 1 second")
             time.sleep(1)
+        utils.agol.handle_response(res._result)
+
     else:
         """
         Simulate an upsert by deleting features from AGOL if they exist. 
@@ -118,7 +125,7 @@ def main():
             edits=features, upsert=True, upsert_matching_field="id"
         )
         """
-        logger.debug(f"Deleting {len(features)} features...")
+        logger.info(f"Deleting {len(features)} features...")
 
         key = "id"
         keys = [f'\'{f["attributes"][key]}\'' for f in features]
@@ -127,10 +134,10 @@ def main():
             res = layer.delete_features(where=f"{key} in ({key_list_stringified})")
             utils.agol.handle_response(res)
 
-    logger.debug("Uploading features....")
+    logger.info("Uploading features....")
 
     for features_chunk in chunks(features, 500):
-        logger.debug("Uploading chunk...")
+        logger.info("Uploading chunk...")
         res = layer.edit_features(adds=features_chunk)
         utils.agol.handle_response(res)
 

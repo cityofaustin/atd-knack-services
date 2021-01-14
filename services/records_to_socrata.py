@@ -84,6 +84,11 @@ def main():
 
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
+    
+    if not config:
+        raise ValueError(
+            f"No config entry found for app: {args.app_name}, container: {container}"
+        )
 
     location_field_id = config.get("location_field_id")
     client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
@@ -101,7 +106,7 @@ def main():
             "container_id": f"eq.{container}",
             "updated_at": f"gte.{filter_iso_date_str}",
         },
-        order_by="updated_at",
+        order_by="record_id",
     )
 
     logger.info(f"{len(data)} records to process")

@@ -21,7 +21,7 @@ def get_floating_timestamp_fields(resource_id, metadata):
     ]
 
 
-def get_client(host="data.austintexas.gov"):
+def get_client(host="data.austintexas.gov", timeout=30):
     SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
     SOCRATA_API_KEY_ID = os.getenv("SOCRATA_API_KEY_ID")
     SOCRATA_API_KEY_SECRET = os.getenv("SOCRATA_API_KEY_SECRET")
@@ -31,6 +31,7 @@ def get_client(host="data.austintexas.gov"):
         SOCRATA_APP_TOKEN,
         username=SOCRATA_API_KEY_ID,
         password=SOCRATA_API_KEY_SECRET,
+        timeout=timeout
     )
 
 
