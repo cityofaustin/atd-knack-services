@@ -4,7 +4,7 @@ import arrow
 def socrata_formatter_location(value):
     if not value:
         return value
-    return f"({value['longitude']}, { value['latitude']})"
+    return f"({ value['latitude']}, {value['longitude']})"
 
 
 def socrata_formatter_point(value):
