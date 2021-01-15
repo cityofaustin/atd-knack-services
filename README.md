@@ -85,6 +85,11 @@ All operations within the `api` schema that is exposed via PostgREST must be aut
 
 Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used to identify the correct Knack auth tokens and ETL configuration parameters in `services/config/knack.py`. Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
 
+| **App name**     | **Description**                                                                    |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| `data-tracker`   | The [AMD Data Tracker](https://www.austinmobility.io/products/2068)                |
+| `signs-markings` | The [Signs & Markings Operations App](https://www.austinmobility.io/products/2906) |
+
 ### Auth & environmental variables
 
 The required environmental variables for using these scripts are:
@@ -126,10 +131,10 @@ CONFIG = {
 - `modified_date_field_id` (`str`, required): A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
 - `description` (`str`, optional): a description of what kind of record this container holds.
 - `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
-- `location_fields` (`list`, optional): A list of knack field keys which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
+- `location_field` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
 - `service_id` (`str`, optional): The ArcGIS Online feature service identifier. Required to publish to ArcGIS Online.
 - `layer_id` (`int`, optional): The ArcGIS Online layer ID of the the destination layer in the feature service.
-- `upsert_matching_field` (`str`, optional): Required for publishing to arcgis online. The field name to be used to match records when upserting to ArcGIS Online. The field must be configured with a `unique` constraint on the layer.
+- `item_type` (`str`, optional): The type ArcGIS Online layer. Must be either `layer` or `table`.
 
 ## Services (`/services`)
 
@@ -181,7 +186,7 @@ Use `records_to_socrata.py` to publish a Knack container to the Open Data Portal
 
 When publishing Knack data to a Socrata dataset, the Socrata dataset must be configured with an ID field which will be automatically populated with Knack's built-in record IDs.
 
-The field's display name can be freely-defined, but the field name must be `id` and they field type must be `text`. This field must also be assigned as the dataset's [row identifer](https://support.socrata.com/hc/en-us/articles/360008065493) to ensure that upserts are handled properly.
+The field's display name can be freely-defined, but the field name must be `id` and the field type must be `text`. This field must also be assigned as the dataset's [row identifer](https://support.socrata.com/hc/en-us/articles/360008065493) to ensure that upserts are handled properly.
 
 If you have a conflicting field in your Knack data named "ID", you should as general best practice rename it. If you absolutely must keep your "ID" field in Knack, this column name will be translated to `_id` when publishing to Socrata, so configure your dataset accordingly.
 
@@ -202,20 +207,19 @@ $ python records_to_socrata.py \
 
 ### Publish records to ArcGIS Online
 
-Use `records_to_agol.py` to publish a Knack container to an ArcGIS Online layer. 
+Use `records_to_agol.py` to publish a Knack container to an ArcGIS Online layer.
 
 #### About timestamps
 
 AGOL stores all timestamps in UTC time. That means, for example, that when you see a “Created Date” field on a sign work order in AGOL, the time is displayed in UTC, not local time.
+
 In the old ETL pipeline, we were offsetting our timestamps to essentially trick AGOL so that it displayed timestamps in local time. This makes make it easier for our users to work with the data, because they don’t have to worry about timestamp conversions—but it adds overhead to the ETL and is really not ideal from a data quality perspective.
 
-This ETL popeline does not do this timestamp conversion—timestamps will be shown in UTC time. Unfortunately, this is not very transparent in AGOL, because they don’t include the timezone name or offset in the data.
-
+This ETL pipeline does not do this timestamp conversion—timestamps will be shown in UTC time. Unfortunately, this is not very transparent in AGOL, because neither the timezone name nor offset are exposed in AGOL apps.
 
 #### About geometries
 
-This service currently supports Esri's `point` and `multipoint` [geometry types](https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm). The geometry type is detected automatically based on a Knack record's location field type. A simple point geometry is used when the location field's value is a single `dict` object with latitude and longitude properties. A multipoint geometry will be created if the location field's value is an array type (ie, the field is member a child record in a one-many relationship).
-
+This service currently supports Esri's `point` and `multipoint` [geometry types](https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm). The geometry type is detected automatically based on a Knack record's location field type. A simple point geometry is used when the location field's value is a single `dict` object with latitude and longitude properties. A multipoint geometry will be created if the location field's value is an array type (ie, the field belongs to a member of a child record in a one-many relationship).
 
 ```shell
 $ python records_to_agol.py \
@@ -228,12 +232,11 @@ $ python records_to_agol.py \
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the name of the object or view key of the source container
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ## Utils (`/services/utils`)
 
 The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
-
-TODO
 
 ## Common Tasks
 
@@ -241,11 +244,11 @@ TODO
 
 Because [Knack views](https://support.knack.com/hc/en-us/articles/226221788-About-Views) allow you to add columns from multiple objects to a single table, they will generally be your container of choice (as opposed to an "object") for surfacing data that will be published to other systems.
 
-We have adopted the convention of dedicating part of each Knack application to an "API Views" page which contains any tables in that app that are used for integration purposes. 
+We have adopted the convention of dedicating part of each Knack application to an "API Views" page which contains any views in the app that are used for integration purposes.
 
-When creating an API view, simply build a table view with the the relevant columns. Be aware that field name handling is specific to each script in `/services`, but in general the field names in the destination dataset need to match the field name in the Knack source _object_, even when the source container is a view. Re-naming a field _in the view itself_ has no effect on the field names used in the ETL. This is a limitation of the Knack API, which does not readily expose the field names in views. See the documentation for each particular service for more details on field name handling..
+When creating an API view, simply build a table view with the the relevant columns. Be aware that field name handling is specific to each script in `/services`, but in general the field names in the destination dataset need to match the field name in the Knack source _object_, even when the source container is a view. Re-naming a field _in the view itself_ has no effect on the field names used in the ETL. This is a limitation of the Knack API, which does not readily expose the field names in views. See the documentation for each particular service for more details on field name handling.
 
-Note also that that. as a best practice, you should not use connection fields in  Knack API view, because the value in that field will be the "[Display Field](https://support.knack.com/hc/en-us/articles/226588888-Working-With-Objects#edit-objects)" value as it is configured for the object. If someone were to change the display field for that object, it could break the ETL. Instead, when you're adding columns to the view, use the object drop-down menu to pick the related object, then add the field from that object that you want in the view.
+Note also that that. as a best practice, you should not use connection fields in Knack API view, because the value in that field will be the "[Display Field](https://support.knack.com/hc/en-us/articles/226588888-Working-With-Objects#edit-objects)" value as it is configured for the object. If someone were to change the display field for that object, it could break the ETL. Instead, when you're adding columns to the view, use the object drop-down menu to pick the related object, then add the field from that object that you want in the view.
 
 ### Dealing with schema changes
 
@@ -255,16 +258,4 @@ To avoid repeated API calls, Knack app metadata is stored alongside records in t
 
 See [atd-airflow](https://github.com/cityofaustin/atd-airflow) for examples of how these services can be deployed to run on a schedule. Airflow deployments rely on Docker, and this repo includes a `Dockerfile` which defines the runtime environment for all services, and is automatically built and pushed to DockerHub using Github actions.
 
-If you add a Python package dependency to any service, adding that package to `requirements.txt` is enough to ensure that the next Docker build will include that package in the environment. Our Airflow instance refreshes its DAG's Docker containers every 5 minutes, so it will always be running the latest environment. 
-
-### Other
-
-- Extending/development
-
-## TODO
-
-- document docker CI
-- disable legacy publisher for those that have been migrated
-- document field matching. think about field mapping...
-- staging instance
-- document Truncating/replacing
+If you add a Python package dependency to any service, adding that package to `requirements.txt` is enough to ensure that the next Docker build will include that package in the environment. Our Airflow instance refreshes its DAG's Docker containers every 5 minutes, so it will always be running the latest environment.
