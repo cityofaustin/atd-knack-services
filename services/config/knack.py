@@ -23,6 +23,9 @@ CONFIG = {
             "modified_date_field": "field_714",
             "socrata_resource_id": "b4k4-adkb",
             "location_field_id": "field_182",
+            "service_id": "52f2b5e51b9a4b5e918b0be5646f27b2",
+            "layer_id": 0,
+            "item_type": "layer",
         },
         "view_2681": {
             "description": "MMC activities",
