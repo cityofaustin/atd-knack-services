@@ -6,7 +6,7 @@ ARG_DEFS = {
         "flag": "-a",
         "type": str,
         "required": True,
-        "help": "The name of the app. must match an entry in ~/.knack/config",
+        "help": "The name of the app. Must match an entry in ~/.knack/config",
     },
     "container": {
         "flag": "-c",
@@ -26,7 +26,13 @@ ARG_DEFS = {
         "type": str,
         "required": False,
         "help": "An ISO 8601-compliant date string which will be used to query records",
-    }
+    },
+    "app-name-dest": {
+        "flag": "-dest",
+        "type": str,
+        "required": False,
+        "help": "The name of the destination Knack app. Required for publishing between Knack apps."
+    },
 }
 
 
