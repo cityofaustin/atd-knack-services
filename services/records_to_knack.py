@@ -9,15 +9,6 @@ from config.knack import CONFIG
 from config.field_maps import FIELD_MAPS
 import utils
 
-""" TODOs
-- documentation
-- remember dag for data tracker inventory items
-- deleted add commodity. this has to be done through inventory items add
-- get review of all items from staff
-- establish inventory/comm code creation process. document it
-- disable legacy finance scrapers to finance system
-"""
-
 
 def format_filter_date(date_from_args):
     return "1970-01-01" if not date_from_args else arrow.get(date_from_args).isoformat()
@@ -36,8 +27,7 @@ def get_pks(field_map, app_name_dest):
 
 
 def create_mapped_record(record, field_map, app_name_dest):
-    """Map the data from the current record (from the financial DB) to the destination
-    app schema """
+    """Map the data from the source Knack app to the destination app schema """
     mapped_record = {}
     for field in field_map:
         val = record.get(field["src"])
