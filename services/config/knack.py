@@ -40,6 +40,11 @@ CONFIG = {
             "socrata_resource_id": "v7vh-gbi6",
             "location_field_id": "field_182",
         },
+        "view_2863": {
+            "description": "Inventory items",
+            "scene": "scene_1170",
+            "modified_date_field": "field_1229",
+        },
     },
     "signs-markings": {
         "view_3304": {
@@ -88,9 +93,15 @@ CONFIG = {
             "description": "Inventory items",
             "scene": "scene_84",
             "modified_date_field": "field_374",
-            "knack_dest_app": "data-tracker",
-            "knack_dest_obj": "object_15",
-            "knack_matching_field_name": "commodity something",
+            "dest_apps": {
+                "data-tracker": {
+                    "container": "view_2863",
+                    "description": "Inventory items",
+                    "scene": "scene_1170",
+                    "modified_date_field": "field_1229",
+                    "object": "object_15",
+                },
+            },
         },
     },
 }
