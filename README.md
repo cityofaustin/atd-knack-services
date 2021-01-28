@@ -36,7 +36,7 @@ Incremental loading is made possible by referencing a record's timestamp through
 
 - The [Knack configuration file](#knack-config) requires that all entries include a `modified_date_field_id`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in funcionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
 
-- The [Postges data store](#postgres-data-store) relies on a stored procedure to maintain an `updated_at` timestamp which is set to the current datetime whenever a record is created or modified.
+- The [Postgres data store](#postgres-data-store) relies on a stored procedure to maintain an `updated_at` timestamp which is set to the current datetime whenever a record is created or modified.
 
 - The processing scripts in this repository accept a `--date` flag which will be used as a filter when extracting records from the Knack application or the Postgres database. Only records which were modified on or after this date will be ingested into the ETL pipeline.
 
@@ -85,16 +85,17 @@ All operations within the `api` schema that is exposed via PostgREST must be aut
 
 Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used to identify the correct Knack auth tokens and ETL configuration parameters in `services/config/knack.py`. Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
 
-| **App name**     | **Description**                                                                    |
-| ---------------- | ---------------------------------------------------------------------------------- |
-| `data-tracker`   | The [AMD Data Tracker](https://www.austinmobility.io/products/2068)                |
-| `signs-markings` | The [Signs & Markings Operations App](https://www.austinmobility.io/products/2906) |
+| **App name**         | **Description**                                                                    |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| `data-tracker`       | The [AMD Data Tracker](https://www.austinmobility.io/products/2068)                |
+| `signs-markings`     | The [Signs & Markings Operations App](https://www.austinmobility.io/products/2906) |
+| `finance-purchasing` | The [Finance & Purchasing App](https://atd.knack.com/finance-purchasing)           |
 
 ### Auth & environmental variables
 
-The required environmental variables for using these scripts are:
+The supported environmental variables for using these scripts are listed below. The required variables vary for each processing script—refer to their documentation:
 
-- `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service
+- `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service.
 - `AGOL_PASSWORD`: The ArcGIS Online account password
 - `KNACK_APP_ID`: The Knack App ID of the application you need to access
 - `KNACK_API_KEY`: The Knack API key of the application you need to access
@@ -165,7 +166,7 @@ $ python records_to_postgrest.py \
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
-- `--container, -c` (`str`, required): the name of the object or view key of the source container
+- `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ### Load Knack metadata to Postgres
@@ -202,7 +203,7 @@ $ python records_to_socrata.py \
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
-- `--container, -c` (`str`, required): the name of the object or view key of the source container
+- `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ### Publish records to ArcGIS Online
@@ -231,7 +232,90 @@ $ python records_to_agol.py \
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
-- `--container, -c` (`str`, required): the name of the object or view key of the source container
+- `--container, -c` (`str`, required): the object or view key of the source container
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
+
+### Publish records to another Knack app
+
+Use `records_to_knack.py` to publish records to another Knack application. Records may be sourced from any Knack container, but may only be published to a single Knack object. It works like this:
+
+- Records for both the source and destination apps must be stored in Postgres via `records_to_postgrest.py`.
+- On execution, `records_to_knack.py` fetches records from the source and destination apps.
+- Source and destination records are evaluated for differences
+- Any new or modified records in the source app are pushed to the destination app
+
+#### Configuration
+
+Both the source and destination apps must be configured to publish their records to Postgres using `records_to_postgrest.py`.
+
+In addition to the standard properties in `config/knack.py`, the _source app_ requires an additional `dest_apps` entry that holds info about each destination app. For example:
+
+```python
+"finance-purchasing": {
+    "view_788": {
+        "description": "Inventory items",
+        "scene": "scene_84",
+        "modified_date_field": "field_374",
+        "dest_apps": {
+            "data-tracker": {
+                # destination records will be fetched from this container and compared to the source
+                "container": "view_2863",
+                "description": "Inventory items",
+                "scene": "scene_1170",
+                "modified_date_field": "field_1229",
+                # new/modified records will be upserted to this object in the destination app
+                "object": "object_15",
+            },
+        },
+    },
+}
+```
+
+In addition to the `config/knack.py` setup, field mappings must be defined in `config/field_maps.py`. See this file for additional information.
+
+```python
+FIELD_MAPS = {
+    "finance-purchasing": {  # the source app name
+        "view_788": [   # the source app container
+            {
+                # the source field key
+                "src": "field_918",
+                # the dest field key for the given destination app
+                "data-tracker": "field_3812",
+                # If the field is the unique record ID. One and only one is required per source application.
+                "primary_key": True,
+            },
+            {
+                "src": "field_720",
+                "data-tracker": "field_3467",
+            },
+            {
+                "src": "field_363",
+                "data-tracker": "field_243",
+                # Optional handler function
+                "handler": handle_connection,
+            },
+        ],
+    },
+}
+```
+
+#### Environmental Variables
+
+- `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service.
+- `AGOL_PASSWORD`: The ArcGIS Online account password
+- `KNACK_APP_ID`: The Knack App ID of the source Knack application
+- `KNACK_API_KEY`: The Knack API key of the source Knack application
+- `KNACK_APP_ID_DEST`: The Knack App ID of the destination Knack application
+- `KNACK_API_KEY_DEST`: The Knack API key of the destination Knack application
+- `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
+- `PGREST_ENDPOINT`: The URL of the PostgREST server. Currently available at `https://atd-knack-services.austinmobility.io`
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
+- `--app-name-dest, -dest` (`str`, required): the name of the destination Knack application
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
 ## Utils (`/services/utils`)
