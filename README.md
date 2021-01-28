@@ -302,10 +302,8 @@ FIELD_MAPS = {
 
 #### Environmental Variables
 
-- `AGOL_USERNAME`: An ArcGIS Online user name that has access to the destination AGOL service.
-- `AGOL_PASSWORD`: The ArcGIS Online account password
-- `KNACK_APP_ID`: The Knack App ID of the source Knack application
-- `KNACK_API_KEY`: The Knack API key of the source Knack application
+- `KNACK_APP_ID_SRC`: The Knack App ID of the source Knack application
+- `KNACK_API_KEY_SRC`: The Knack API key of the source Knack application
 - `KNACK_APP_ID_DEST`: The Knack App ID of the destination Knack application
 - `KNACK_API_KEY_DEST`: The Knack API key of the destination Knack application
 - `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
