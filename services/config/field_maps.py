@@ -1,3 +1,10 @@
+""" Field maps and handler functions for knack-to-knack translations
+
+Each handler function must accept and return a single value which will be mapped from
+the source application(input value) to the destination application(returned value)
+"""
+
+
 def handle_connection(value):
     """
     Return a string of comma-separated values from a connection field type
