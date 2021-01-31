@@ -18,7 +18,30 @@ def handle_connection(value):
         return ", ".join(str(v) for v in identifiers)
 
 
+def handle_strip(value):
+    try:
+        return value.strip()
+    except AttributeError:
+        return value
+
+
 FIELD_MAPS = {
+    "data-tracker": {
+        "view_197": [
+            # Signal ID
+            {"src": "field_199_raw", "vza": "field_751", "primary_key": True},
+            # Location Name
+            {"src": "field_211_raw", "vza": "field_624", "handler": handle_strip},
+            # Signal Type
+            {"src": "field_201", "vza": "field_753",},
+            # Signal Status
+            {"src": "field_491", "vza": "field_759",},
+            # Location Type
+            {"src": None, "vza": "field_750", "default": "Signal Location",},
+            # Type
+            {"src": None, "vza": "field_626", "default": "Signal"},
+        ],
+    },
     "finance-purchasing": {
         "view_788": [
             # ATD_INVENTORY_ID
@@ -52,6 +75,6 @@ FIELD_MAPS = {
             # Object code
             {"src": "field_920", "data-tracker": "field_3462",},
         ]
-    }
+    },
 }
 
