@@ -40,6 +40,8 @@ FIELD_MAPS = {
             {"src": None, "vza": "field_750", "default": "Signal Location",},
             # Type
             {"src": None, "vza": "field_626", "default": "Signal"},
+            # Modifie Date/time
+            {"src": "field_205", "vza": "field_647",},
         ],
     },
     "finance-purchasing": {
