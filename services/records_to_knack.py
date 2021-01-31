@@ -21,7 +21,7 @@ def get_pks(field_map, app_name_dest):
         assert len(pk_field) == 1
     except AssertionError:
         raise ValueError(
-            "One (and only one) primary key is required. There's an error in the field map configuration."
+            "One (and only one) primary key is required. There's an error in the field map configuration."  # noqa E501
         )
     return pk_field[0]["src"], pk_field[0][app_name_dest]
 
@@ -30,7 +30,20 @@ def create_mapped_record(record, field_map, app_name_dest):
     """Map the data from the source Knack app to the destination app schema """
     mapped_record = {}
     for field in field_map:
-        val = record.get(field["src"])
+        field_src = field["src"]
+        if field_src:
+            """ Note that a default value in the field map *never* overrides a value in
+            the src data unless the src field ID is None"""
+            val = record.get(field_src)
+        else:
+            try:
+                val = field["default"]
+            except KeyError:
+                raise ValueError(
+                    "A default default is required when source field is None"
+                )
+
+        field_dest = field[app_name_dest]
         handler_func = field.get("handler")
         mapped_record[field[app_name_dest]] = (
             val if not handler_func else handler_func(val)
