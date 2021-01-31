@@ -16,6 +16,14 @@ CONFIG = {
             "item_type": "layer",
             "layer_id": 0,
             "upsert_matching_field": "SIGNAL_ID",
+            "dest_apps": {
+                "vza": {
+                    "container": "view_567",
+                    "description": "Signal locations",
+                    "modified_date_field": "field_647",
+                    "object": "object_41",
+                },
+            },
         },
         "view_395": {
             "description": "CCTV Cameras",
@@ -97,11 +105,17 @@ CONFIG = {
                 "data-tracker": {
                     "container": "view_2863",
                     "description": "Inventory items",
-                    "scene": "scene_1170",
                     "modified_date_field": "field_1229",
                     "object": "object_15",
                 },
             },
+        },
+    },
+    "vza": {
+        "view_567": {
+            "description": "Vision Zero in Action (VZA) signal locations",
+            "scene": "scene_259",
+            "modified_date_field": "field_647",
         },
     },
 }
