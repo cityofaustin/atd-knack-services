@@ -60,6 +60,7 @@ CONFIG = {
             "layer_id": 0,
             "item_type": "layer",
             "location_field_id": "field_3818",
+            "socrata_resource_id": "qd73-bsdg",
         },
     },
     "signs-markings": {
