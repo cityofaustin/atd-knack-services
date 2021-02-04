@@ -15,7 +15,6 @@ CONFIG = {
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
             "item_type": "layer",
             "layer_id": 0,
-            "upsert_matching_field": "SIGNAL_ID",
             "dest_apps": {
                 "vza": {
                     "container": "view_567",
@@ -52,6 +51,15 @@ CONFIG = {
             "description": "Inventory items",
             "scene": "scene_1170",
             "modified_date_field": "field_1229",
+        },
+        "view_2908": {
+            "description": "Metrobike kiosks",
+            "scene": "scene_514",
+            "modified_date_field": "field_3798",
+            "service_id": "7d4d0b1369504383a42b943bd9c03f9a",
+            "layer_id": 0,
+            "item_type": "layer",
+            "location_field_id": "field_3818",
         },
     },
     "signs-markings": {
