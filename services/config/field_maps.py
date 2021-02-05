@@ -56,8 +56,6 @@ FIELD_MAPS = {
             {"src": "field_364", "data-tracker": "field_244",},
             # Common Name
             {"src": "field_914", "data-tracker": "field_3617",},
-            # Unit cost
-            {"src": "field_365", "data-tracker": "field_245",},
             # Modified Date
             {"src": "field_374", "data-tracker": "field_1229",},
             # Modified by
