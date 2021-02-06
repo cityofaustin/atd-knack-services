@@ -1,0 +1,172 @@
+#!/usr/bin/env python
+"""Build street segment geometries from segment IDs in ArcGIS Online"""
+import argparse
+import os
+import re
+
+import arcgis
+
+import utils
+
+# docker run --network host -it --rm --env-file env_file -v /Users/john/Dropbox/atd/atd-knack-services:/app atddocker/atd-knack-services:production services/build_segment_geometries.py -l markings_work_orders
+
+SPATIAL_REFERENCE = 4326
+URL = "https://austin.maps.arcgis.com"
+USERNAME = os.getenv("AGOL_USERNAME")
+PASSWORD = os.getenv("AGOL_PASSWORD")
+APP_ID = os.getenv("KNACK_APP_ID")
+PGREST_JWT = os.getenv("PGREST_JWT")
+PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
+CHUNK_SIZE = 500
+CONFIG = {
+    "service_id": "a9f5be763a67442a98f684935d15729b",
+    "layers": {
+        "markings_jobs": {
+            "id": 0,
+            "segment_id_field": "STREET_SEGMENT_IDS",
+            "modified_date_field": "MODIFIED_DATE",
+        },
+        "markings_work_orders": {
+            "id": 1,
+            "segment_id_field": "STREET_SEGMENT_IDS",
+            "modified_date_field": "MODIFIED_DATE",
+        },
+    },
+}
+
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i : i + n]
+
+
+def parse_segment_strings(segments_string):
+    """ Parsing something like this:
+    'PAYTON GIN RD (2039939),  COLLINFIELD DR (2010835),  COOPER DR (2010862)'
+    Which is indeed subject to change if someone were to modifiy this text formula
+    field in Knack."""
+    # street segment IDs are 7 digits
+    match_pattern = "\d\d\d\d\d\d\d"
+    matches = re.findall(match_pattern, segments_string)
+    return [int(segment_id) for segment_id in matches]
+
+
+def get_segment_features(segment_ids, gis):
+    # COA transportation_street_segment service
+    # https://austin.maps.arcgis.com/home/item.html?id=a78db5b7a72640bcbb181dcb88817652
+    service_id = "a78db5b7a72640bcbb181dcb88817652"
+    layer_id = 0
+    segment_id_field = "SEGMENT_ID"
+    service = gis.content.get(service_id)
+    layer = service.layers[layer_id]
+    where_part = ",".join([str(seg_id) for seg_id in segment_ids])
+    # have tested this with 4k+ segnment IDs, and it is performant. segnment IDs being
+    # integer types is probably clutch
+    where = f"{segment_id_field} in ({where_part})"
+    logger.info(f"Getting {len(segment_ids)} street segments...")
+    feature_set = layer.query(where=where)
+    return feature_set.features or []
+
+
+def build_geometry(segment_ids, segment_features, match_field="SEGMENT_ID"):
+    # of interest: https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm
+    # {"geometry": {"paths": [[[3106245.50014439, 10087107.9998853], [3106113.15952982, 10087186.11259]]]}
+    paths = []
+    for segment_id in segment_ids:
+        for feature in segment_features:
+            segment_id_current = feature.attributes.get(match_field)
+            if segment_id_current == int(segment_id):
+                paths += feature.geometry["paths"]
+    if not paths:
+        return None
+    return {"paths": paths, "spatialReference": {"wkid": 102739, "latestWkid": 2277}}
+
+
+def format_filter_date(date_from_args):
+    return "1970-01-01" if not date_from_args else arrow.get(date_from_args).isoformat()
+
+
+def cli_args():
+    args = [
+        {
+            "name": "--layer-name",
+            "flag": "-l",
+            "type": str,
+            "required": True,
+            "help": "The name of layer to process.",
+        },
+        {
+            "name": "--date",
+            "flag": "-d",
+            "type": str,
+            "required": False,
+            "help": "An ISO 8601-compliant date string which will be used to query records",
+        },
+    ]
+    parser = argparse.ArgumentParser()
+    for arg in args:
+        parser.add_argument(f"{arg.pop('name')}", arg.pop("flag"), **arg)
+    return parser.parse_args()
+
+
+def main():
+    args = cli_args()
+    layer_name = args.layer_name
+    logger.info(f"Processing {layer_name}...")
+    service_id = CONFIG["service_id"]
+    layer_id = CONFIG["layers"][layer_name]["id"]
+    segment_id_field = CONFIG["layers"][layer_name]["segment_id_field"]
+    modified_date_field = CONFIG["layers"][layer_name]["modified_date_field"]
+    gis = arcgis.GIS(url=URL, username=USERNAME, password=PASSWORD)
+    service = gis.content.get(service_id)
+    layer = service.layers[layer_id]
+    date_filter = format_filter_date(args.date)
+
+    logger.info(f"Getting layer features modified since {date_filter}...")
+
+    where = f"{modified_date_field} >= '{date_filter}'"
+    features = layer.query(where=where)
+    all_segment_ids = []
+
+    for feature in features:
+        segments_string = feature.attributes.get(segment_id_field)
+
+        if not segments_string:
+            # this should never happen given our AGOL `where` statement
+            continue
+
+        # replace stringy segment ids with list of segment IDs
+        feature.attributes[segment_id_field] = parse_segment_strings(segments_string)
+
+    all_segment_ids += []
+    for feature in features:
+        segment_ids = feature.attributes.get(segment_id_field)
+        all_segment_ids += segment_ids if segment_ids else all_segment_ids
+    all_segment_ids = list(set(all_segment_ids))
+
+    segment_features = get_segment_features(all_segment_ids, gis)
+
+    todos = []
+
+    for feature in features:
+        segment_ids = feature.attributes.get(segment_id_field)
+        if not segment_ids:
+            # this should never happen given our AGOL `where` statement
+            continue
+        feature_geom = build_geometry(segment_ids, segment_features)
+        if not feature_geom:
+            continue
+        object_id = feature.attributes["OBJECTID"]
+        todos.append({"attributes": {"OBJECTID": object_id}, "geometry": feature_geom})
+
+    logger.info(f"Updating geometries for {len(todos)} features...")
+
+    for features_chunk in chunks(todos, CHUNK_SIZE):
+        logger.info(f"Uploading {len(features_chunk)} records...")
+        res = layer.edit_features(updates=features_chunk, rollback_on_failure=False)
+
+
+if __name__ == "__main__":
+    logger = utils.logging.getLogger(__file__)
+    main()
