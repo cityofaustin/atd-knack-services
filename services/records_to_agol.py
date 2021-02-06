@@ -31,6 +31,7 @@ def format_filter_date(date_from_args):
 
 def main():
     args = utils.args.cli_args(["app-name", "container", "date"])
+    logger.info(args)
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
 
@@ -126,7 +127,6 @@ def main():
         )
         """
         logger.info(f"Deleting {len(features)} features...")
-
         key = "id"
         keys = [f'\'{f["attributes"][key]}\'' for f in features]
         for key_chunk in chunks(keys, 100):
@@ -134,11 +134,11 @@ def main():
             res = layer.delete_features(where=f"{key} in ({key_list_stringified})")
             utils.agol.handle_response(res)
 
-    logger.info("Uploading features....")
+    logger.info("Uploading features...")
 
     for features_chunk in chunks(features, 500):
         logger.info("Uploading chunk...")
-        res = layer.edit_features(adds=features_chunk)
+        res = layer.edit_features(adds=features_chunk, rollback_on_failure=False)
         utils.agol.handle_response(res)
 
 
