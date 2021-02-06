@@ -1,10 +1,22 @@
 #!/usr/bin/env python
-"""Build street segment geometries from segment IDs in ArcGIS Online"""
+"""Build street segment geometries from segment IDs in ArcGIS Online.
+
+This script updates records in ArcGIS Online (AGOL) which have been published from
+Knack. These records do have geomtries when published from Knack, they merely reference
+a COA street segment ID.
+
+This script:
+- Downloads any record from AGOL that has been modified since the given date
+- Extracts each records street segment IDs, and fetches the segment geometries from the
+canonical COA AGOL layer
+- Updates each record in AGOL with the complete geometry from all of its segments
+"""
 import argparse
 import os
 import re
 
 import arcgis
+import arrow
 
 import utils
 
@@ -65,13 +77,15 @@ def get_segment_features(segment_ids, gis):
     # integer types is probably clutch
     where = f"{segment_id_field} in ({where_part})"
     logger.info(f"Getting {len(segment_ids)} street segments...")
-    feature_set = layer.query(where=where)
+    feature_set = layer.query(where=where, out_fields=["SEGMENT_ID"])
     return feature_set.features or []
 
 
 def build_geometry(segment_ids, segment_features, match_field="SEGMENT_ID"):
-    # of interest: https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm
-    # {"geometry": {"paths": [[[3106245.50014439, 10087107.9998853], [3106113.15952982, 10087186.11259]]]}
+    """ Finds and merges all segment geometry paths for the given list of segment IDs
+    
+    Of interest: https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm  # noqa: E501
+    """
     paths = []
     for segment_id in segment_ids:
         for feature in segment_features:
@@ -84,7 +98,11 @@ def build_geometry(segment_ids, segment_features, match_field="SEGMENT_ID"):
 
 
 def format_filter_date(date_from_args):
-    return "1970-01-01" if not date_from_args else arrow.get(date_from_args).isoformat()
+    return (
+        "1970-01-01"
+        if not date_from_args
+        else arrow.get(date_from_args).format("YYYY-DD-MM")
+    )
 
 
 def cli_args():
@@ -123,10 +141,12 @@ def main():
     layer = service.layers[layer_id]
     date_filter = format_filter_date(args.date)
 
-    logger.info(f"Getting layer features modified since {date_filter}...")
+    logger.info(f"Getting {layer_name} features modified since {date_filter}...")
 
-    where = f"{modified_date_field} >= '{date_filter}'"
-    features = layer.query(where=where)
+    where = f"{modified_date_field} >= '{date_filter}' AND {segment_id_field} IS NOT NULL"  # noqa: E501
+    features = layer.query(
+        where=where, out_fields=["OBJECTID", modified_date_field, segment_id_field]
+    )
     all_segment_ids = []
 
     for feature in features:
@@ -140,11 +160,12 @@ def main():
         feature.attributes[segment_id_field] = parse_segment_strings(segments_string)
 
     all_segment_ids += []
+
     for feature in features:
         segment_ids = feature.attributes.get(segment_id_field)
         all_segment_ids += segment_ids if segment_ids else all_segment_ids
-    all_segment_ids = list(set(all_segment_ids))
 
+    all_segment_ids = list(set(all_segment_ids))
     segment_features = get_segment_features(all_segment_ids, gis)
 
     todos = []
@@ -165,6 +186,7 @@ def main():
     for features_chunk in chunks(todos, CHUNK_SIZE):
         logger.info(f"Uploading {len(features_chunk)} records...")
         res = layer.edit_features(updates=features_chunk, rollback_on_failure=False)
+        utils.agol.handle_response(res)
 
 
 if __name__ == "__main__":
