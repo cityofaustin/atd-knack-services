@@ -68,18 +68,12 @@ def handle_response(response):
         return
     keys = ["addResults", "updateResults", "deleteResults"]
     # parsing something like this
-    # {'addResults': [{'objectId': 3977021, 'uniqueId': 3977021, 'globalId': None, 'success': True}...], ...}
+    # {'addResults': [{'objectId': 3977021, 'uniqueId': 3977021, 'globalId': None, 'success': True},...], ...}
     for key in keys:
         if response.get(key):
             for feature_status in response.get(key):
                 if feature_status.get("success"):
                     continue
                 else:
-                    # when uploading a group of features, if one feature errors, the
-                    # rest will error with code 1003: "operation rolled back". we want
-                    # to skip these errors until we surface the real culprit in the
-                    # group
-                    if feature_status["error"]["code"] == 1003:
-                        continue
                     raise ValueError(feature_status["error"])
     return
