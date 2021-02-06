@@ -41,7 +41,7 @@ def chunk_payload(client, data, chunk_size):
     def chunks(data, chunk_size):
         """Yield successive n-sized chunks from lst."""
         for i in range(0, len(data), chunk_size):
-            yield data[i:i + chunk_size]
+            yield data[i : i + chunk_size]
 
     return [{"client": client, "payload": chunk} for chunk in chunks(data, chunk_size)]
 
@@ -59,16 +59,14 @@ def main():
 
     args = utils.args.cli_args(["app-name", "container", "date"])
     logger.info(args)
-
-    app_config = CONFIG.get(args.app_name).get(args.container)
+    container = args.container
+    app_config = CONFIG.get(args.app_name).get(container)
 
     if not app_config:
         raise ValueError(
             f"No config entry found for app: {args.app_name}, container: {container}"
         )
 
-    container = args.container
-    
     modified_date_field = app_config["modified_date_field"]
 
     filters = utils.knack.date_filter_on_or_after(
