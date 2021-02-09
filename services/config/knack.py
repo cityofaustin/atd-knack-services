@@ -128,7 +128,7 @@ CONFIG = {
             "location_field_id": "field_3300",
         },
         "view_3126": {
-            "description": "Signs and markings work order materials",
+            "description": "Signs work order materials",
             "scene": "scene_1249",
             "modified_date_field": "field_771",
             "service_id": "93e29b23c39b4110ab0bbefde79b4063",
@@ -136,7 +136,7 @@ CONFIG = {
             "item_type": "table",
         },
         "view_3127": {
-            "description": "Signs & markings work order attachments",
+            "description": "Signs work order attachments",
             "scene": "scene_1249",
             "modified_date_field": "object_153",
             "service_id": "93e29b23c39b4110ab0bbefde79b4063",
