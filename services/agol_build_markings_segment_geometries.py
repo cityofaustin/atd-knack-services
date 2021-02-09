@@ -101,7 +101,7 @@ def format_filter_date(date_from_args):
     return (
         "1970-01-01"
         if not date_from_args
-        else arrow.get(date_from_args).format("YYYY-DD-MM")
+        else arrow.get(date_from_args).format("YYYY-MM-DD")
     )
 
 
@@ -166,6 +166,10 @@ def main():
         all_segment_ids += segment_ids if segment_ids else all_segment_ids
 
     all_segment_ids = list(set(all_segment_ids))
+    
+    if not all_segment_ids:
+        return
+
     segment_features = get_segment_features(all_segment_ids, gis)
 
     todos = []
