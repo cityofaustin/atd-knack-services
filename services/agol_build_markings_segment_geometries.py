@@ -144,43 +144,39 @@ def main():
     logger.info(f"Getting {layer_name} features modified since {date_filter}...")
 
     where = f"{modified_date_field} >= '{date_filter}' AND {segment_id_field} IS NOT NULL"  # noqa: E501
+
     features = layer.query(
         where=where, out_fields=["OBJECTID", modified_date_field, segment_id_field]
     )
+
     all_segment_ids = []
 
     for feature in features:
+        # replace stringy segment ids with lists of segment IDs
         segments_string = feature.attributes.get(segment_id_field)
-
-        if not segments_string:
-            # this should never happen given our AGOL `where` statement
-            continue
-
-        # replace stringy segment ids with list of segment IDs
-        feature.attributes[segment_id_field] = parse_segment_strings(segments_string)
-
-    all_segment_ids += []
-
-    for feature in features:
-        segment_ids = feature.attributes.get(segment_id_field)
-        all_segment_ids += segment_ids if segment_ids else all_segment_ids
+        segments_as_ints = parse_segment_strings(segments_string)
+        feature.attributes[segment_id_field] = segments_as_ints
+        # collect all segment ids while we're at it
+        all_segment_ids += segments_as_ints
 
     all_segment_ids = list(set(all_segment_ids))
-    
-    if not all_segment_ids:
-        return
 
+    # fetch all segment features for segment IDs we've collected
     segment_features = get_segment_features(all_segment_ids, gis)
 
     todos = []
 
     for feature in features:
+        # join segment feature geometries to our features
         segment_ids = feature.attributes.get(segment_id_field)
-        if not segment_ids:
-            # this should never happen given our AGOL `where` statement
-            continue
         feature_geom = build_geometry(segment_ids, segment_features)
         if not feature_geom:
+            """
+            It is possible that we won't find a matching street segment feature given
+            a segment ID. this could happen from a user mis-keying a segment ID
+            or because a once-existing segment ID has been removed or modified from
+            CTMs street segment layer.
+            """
             continue
         object_id = feature.attributes["OBJECTID"]
         todos.append({"attributes": {"OBJECTID": object_id}, "geometry": feature_geom})
