@@ -166,10 +166,6 @@ def main():
 
     all_segment_ids = list(set(all_segment_ids))
 
-    if not all_segment_ids:
-        breakpoint()
-        print("impossible")
-
     # fetch all segment features for segment IDs we've collected
     segment_features = get_segment_features(all_segment_ids, gis)
 
