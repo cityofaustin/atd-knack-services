@@ -131,7 +131,7 @@ def cli_args():
 def main():
     args = cli_args()
     layer_name = args.layer_name
-    logger.info(f"Processing {layer_name}...")
+    logger.info(args)
     service_id = CONFIG["service_id"]
     layer_id = CONFIG["layers"][layer_name]["id"]
     segment_id_field = CONFIG["layers"][layer_name]["segment_id_field"]
@@ -141,13 +141,18 @@ def main():
     layer = service.layers[layer_id]
     date_filter = format_filter_date(args.date)
 
-    logger.info(f"Getting {layer_name} features modified since {date_filter}...")
+    logger.info(f"Getting {layer_name} features modified since {date_filter}")
 
     where = f"{modified_date_field} >= '{date_filter}' AND {segment_id_field} IS NOT NULL"  # noqa: E501
 
     features = layer.query(
         where=where, out_fields=["OBJECTID", modified_date_field, segment_id_field]
     )
+
+    logger.info(f"{len(features)} features to process")
+
+    if not features:
+        return
 
     all_segment_ids = []
 
@@ -160,6 +165,10 @@ def main():
         all_segment_ids += segments_as_ints
 
     all_segment_ids = list(set(all_segment_ids))
+
+    if not all_segment_ids:
+        breakpoint()
+        print("impossible")
 
     # fetch all segment features for segment IDs we've collected
     segment_features = get_segment_features(all_segment_ids, gis)
