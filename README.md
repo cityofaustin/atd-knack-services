@@ -99,8 +99,9 @@ The supported environmental variables for using these scripts are listed below. 
 - `AGOL_PASSWORD`: The ArcGIS Online account password
 - `KNACK_APP_ID`: The Knack App ID of the application you need to access
 - `KNACK_API_KEY`: The Knack API key of the application you need to access
-- `SOCRATA_USERNAME`: A Socrata user name that has access to the destination Socrata dataset
-- `SOCRATA_PASSWORD`: The Socrata account password
+- `SOCRATA_API_KEY_ID`: The Socrata API key of the account you need to access
+- `SOCRATA_API_KEY_SECRET`: The Socrata API key secret
+- `SOCRATA_APP_TOKEN`: The Socrata app token
 - `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
 - `PGREST_ENDPOINT`: The URL of the PostgREST server. Currently available at `https://atd-knack-services.austinmobility.io`
 
