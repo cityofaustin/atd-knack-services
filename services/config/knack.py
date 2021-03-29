@@ -62,6 +62,14 @@ CONFIG = {
             "location_field_id": "field_3818",
             "socrata_resource_id": "qd73-bsdg",
         },
+        "view_1564": {
+            "description": "Digital Messaging Signs",
+            "scene": "scene_569",
+            "modified_date_field": "field_1658",
+            "service_id": "e7104494593d4a44a2529e4044ef7d5d",
+            "socrata_resource_id": "4r2j-b4rx",
+            # check to see if we need the location_field
+        }
     },
     "signs-markings": {
         "view_3099": {
