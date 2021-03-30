@@ -68,7 +68,9 @@ CONFIG = {
             "modified_date_field": "field_1658",
             "service_id": "e7104494593d4a44a2529e4044ef7d5d",
             "socrata_resource_id": "4r2j-b4rx",
-            # check to see if we need the location_field
+            "location_field_id": "field_182",
+            "layer_id": 0,
+            "item_type": "layer",
         }
     },
     "signs-markings": {
