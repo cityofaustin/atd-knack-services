@@ -143,3 +143,4 @@ notes.md
 pytest.ini
 env_file
 /dev/pgdata/*
+.idea/

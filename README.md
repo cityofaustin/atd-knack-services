@@ -118,7 +118,7 @@ Each Knack container which will be processed must have configuration parameters 
 ```python
 CONFIG = {
     <str: app_name>: {
-        <str: continer_id>: <dict: container kwargs>
+        <str: container_id>: <dict: container kwargs>
         },
     },
 }
@@ -129,14 +129,15 @@ CONFIG = {
 
 #### Container properties
 
-- `scene_id` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
-- `modified_date_field_id` (`str`, required): A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
+- `scene` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
+- `modified_date_field` (`str`, required): A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
 - `description` (`str`, optional): a description of what kind of record this container holds.
 - `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
-- `location_field` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
+- `location_field_id` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
 - `service_id` (`str`, optional): The ArcGIS Online feature service identifier. Required to publish to ArcGIS Online.
 - `layer_id` (`int`, optional): The ArcGIS Online layer ID of the the destination layer in the feature service.
 - `item_type` (`str`, optional): The type ArcGIS Online layer. Must be either `layer` or `table`.
+- `dest_apps` (`dict`, optional): Destination app information for [publishing to another knack app](#publish-records-to-another-knack-app)
 
 ## Services (`/services`)
 
