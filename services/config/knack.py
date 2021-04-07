@@ -71,6 +71,13 @@ CONFIG = {
             "location_field_id": "field_182",
             "layer_id": 0,
             "item_type": "layer",
+        },
+        "view_1829": {
+            "description": "Work Orders Signals",
+            "scene": "scene_683",
+            "modified_date_field": "field_1074",
+            "socrata_resource_id": "hst3-hxcz",
+            "location_field_id": "field_182",
         }
     },
     "signs-markings": {
