@@ -50,7 +50,7 @@ def find_field_def(field_defs, field_id):
 
 
 def patch_formatters(field_defs, location_field_id, metadata_socrata):
-    """Replace knackpy's default address fomatter with a custom socrata formatter for
+    """Replace knackpy's default address formatter with a custom socrata formatter for
     either `point` or `location` field types. `location` types are a legacy field
     type, so we have to munge the socrata metadata to determine which type(s) our
     dataset uses."""

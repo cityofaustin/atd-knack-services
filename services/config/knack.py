@@ -78,6 +78,16 @@ CONFIG = {
             "modified_date_field": "field_1074",
             "socrata_resource_id": "hst3-hxcz",
             "location_field_id": "field_182",
+        },
+        "view_1563": {
+            "description": "Flashing Beacons",
+            "scene": "scene_568",
+            "modified_date_field": "field_1701",
+            "socrata_resource_id": "wczq-5cer",
+            "location_field_id": "field_182",
+            "service_id": "6c4392540b684d598c72e52206d774be",
+            "layer_id": 0,
+            "item_type": "layer",
         }
     },
     "signs-markings": {
