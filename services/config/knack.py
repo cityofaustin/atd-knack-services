@@ -88,6 +88,16 @@ CONFIG = {
             "service_id": "6c4392540b684d598c72e52206d774be",
             "layer_id": 0,
             "item_type": "layer",
+        },
+        "view_1333": {
+            "description": "Detectors",
+            "scene": "scene_468",
+            "modified_date_field": "field_1533",
+            "socrata_resource_id": "qpuw-8eeb",
+            "location_field_id": "field_182",
+            "service_id": "47d17ff3ce664849a16b9974979cd12e",
+            "layer_id": 0,
+            "item_type": "layer",
         }
     },
     "signs-markings": {
