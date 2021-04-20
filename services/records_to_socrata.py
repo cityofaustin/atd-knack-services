@@ -51,7 +51,7 @@ def remove_unknown_fields(record_fieldNames, payload, client_metadata):
     """
     columnNames = [c["fieldName"] for c in client_metadata["columns"]]
     unknown_fields = [fieldName.lower() for fieldName in record_fieldNames if fieldName.lower() not in columnNames]
-    print(f"Record field names not in Socrata: {unknown_fields}")
+    logger.info(f"Record field names not in Socrata: {unknown_fields}")
     for record in payload:
         for unknown_field in unknown_fields:
             record.pop(unknown_field, None)
