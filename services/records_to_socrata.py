@@ -41,21 +41,21 @@ def bools_to_strings(records):
     return records
 
 
-def ignore_unknown_fields(record_fieldNames, formatted_records, client_metadata):
-    columnNames = []
-    for c in client_metadata["columns"]:
-        columnNames.append(c["fieldName"])
-    fields = []
-    for f in record_fieldNames:
-        if f.lower() not in columnNames:
-            fields.append(f)
-            for r in formatted_records:
-                print(f"deleting {f.lower()}")
-                r.pop(f.lower(), None)
-    # what if we find which fields in the formatted records aren't in the client metadata
-    # if f in field is not in
-
-    pass
+def remove_unknown_fields(record_fieldNames, payload, client_metadata):
+    """
+    Modifies payload by removing the fields not found in Socrata
+    Prevents "400 Client Error: Bad Request. Illegal field name sent" response
+    :param record_fieldNames: list of fieldNames in knack dataset
+    :param payload: records payload to send to Socrata
+    :param client_metadata: Socrata metadata for app
+    """
+    columnNames = [c["fieldName"] for c in client_metadata["columns"]]
+    unknown_fields = [fieldName.lower() for fieldName in record_fieldNames if fieldName.lower() not in columnNames]
+    print(f"Record field names not in Socrata: {unknown_fields}")
+    for record in payload:
+        for unknown_field in unknown_fields:
+            record.pop(unknown_field, None)
+    return payload
 
 
 def find_field_def(field_defs, field_id):
@@ -147,9 +147,7 @@ def main():
     payload = [record.format() for record in records]
     payload = format_keys(payload)
     bools_to_strings(payload)
-    # take out the keys we have in socrata?
-    socrata_metadata = client_socrata.get_metadata(resource_id)
-    ignore_unknown_fields(records[0].names(), payload, socrata_metadata)
+    remove_unknown_fields(records[0].names(), payload, metadata_socrata)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
     )
