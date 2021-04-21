@@ -49,13 +49,13 @@ def remove_unknown_fields(record_fieldNames, payload, client_metadata):
     :param payload: records payload to send to Socrata
     :param client_metadata: Socrata metadata for app
     """
-    columnNames = [c["fieldName"] for c in client_metadata["columns"]]
-    unknown_fields = [fieldName.lower() for fieldName in record_fieldNames if fieldName.lower() not in columnNames]
-    logger.info(f"Record field names not in Socrata: {unknown_fields}")
-    for record in payload:
-        for unknown_field in unknown_fields:
-            record.pop(unknown_field, None)
-    return payload
+    column_names = [c["fieldName"] for c in client_metadata["columns"]]
+    unknown_fields = [fieldName.lower() for fieldName in record_fieldNames if fieldName.lower() not in column_names]
+    if len(unknown_fields) > 0:
+        logger.info(f"Record field names not in Socrata: {unknown_fields}")
+        for record in payload:
+            for unknown_field in unknown_fields:
+                record.pop(unknown_field, None)
 
 
 def find_field_def(field_defs, field_id):
