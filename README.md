@@ -195,6 +195,8 @@ If you have a conflicting field in your Knack data named "ID", you should as gen
 
 With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces with underscores and making all characters lowercase.
 
+Knack container field names missing from the Socrata dataset's fields will be removed from the payload before publishing.
+
 ```shell
 $ python records_to_socrata.py \
     -a data-tracker \
