@@ -98,6 +98,13 @@ CONFIG = {
             "service_id": "47d17ff3ce664849a16b9974979cd12e",
             "layer_id": 0,
             "item_type": "layer",
+        },
+        "view_1063": {
+            "description": "Signal Retiming",
+            "scene": "scene_375",
+            "modified_date_field": "field_1257",
+            "socrata_resource_id": "g8w2-8uap",
+            "location_field_id": "", #"field_182",
         }
     },
     "signs-markings": {
