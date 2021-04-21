@@ -38,7 +38,6 @@ def bools_to_strings(records):
         for k, v in record.items():
             if isinstance(v, bool):
                 record[k] = str(v)
-    return records
 
 
 def remove_unknown_fields(record_fieldNames, payload, client_metadata):
