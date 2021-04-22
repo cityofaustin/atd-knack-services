@@ -99,12 +99,21 @@ CONFIG = {
             "layer_id": 0,
             "item_type": "layer",
         },
+        "view_540": {
+            "description": "Travel Sensors",
+            "scene": "scene_188",
+            "modified_date_field": "field_710",
+            "socrata_resource_id": "6yd9-yz29",
+            "location_field_id": "field_182",
+            "service_id": "9776d3e894a74521a7f63443f7becc7c",
+            "layer_id": 0,
+            "item_type": "layer"
+        },
         "view_1063": {
             "description": "Signal Retiming",
             "scene": "scene_375",
             "modified_date_field": "field_1257",
             "socrata_resource_id": "g8w2-8uap",
-        }
     },
     "signs-markings": {
         "view_3099": {
