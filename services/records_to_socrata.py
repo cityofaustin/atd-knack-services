@@ -38,7 +38,23 @@ def bools_to_strings(records):
         for k, v in record.items():
             if isinstance(v, bool):
                 record[k] = str(v)
-    return records
+
+
+def remove_unknown_fields(record_fieldNames, payload, client_metadata):
+    """
+    Modifies payload by removing the fields not found in Socrata
+    Prevents "400 Client Error: Bad Request. Illegal field name sent" response
+    :param record_fieldNames: list of fieldNames in knack dataset
+    :param payload: records payload to send to Socrata
+    :param client_metadata: Socrata metadata for app
+    """
+    column_names = [c["fieldName"] for c in client_metadata["columns"]]
+    unknown_fields = [fieldName.lower() for fieldName in record_fieldNames if fieldName.lower() not in column_names]
+    if unknown_fields:
+        logger.info(f"Record field names not in Socrata: {unknown_fields}")
+        for record in payload:
+            for unknown_field in unknown_fields:
+                record.pop(unknown_field, None)
 
 
 def find_field_def(field_defs, field_id):
@@ -130,6 +146,7 @@ def main():
     payload = [record.format() for record in records]
     payload = format_keys(payload)
     bools_to_strings(payload)
+    remove_unknown_fields(records[0].names(), payload, metadata_socrata)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
     )

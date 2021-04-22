@@ -98,6 +98,16 @@ CONFIG = {
             "service_id": "47d17ff3ce664849a16b9974979cd12e",
             "layer_id": 0,
             "item_type": "layer",
+        },
+        "view_540": {
+            "description": "Travel Sensors",
+            "scene": "scene_188",
+            "modified_date_field": "field_710",
+            "socrata_resource_id": "6yd9-yz29",
+            "location_field_id": "field_182",
+            "service_id": "9776d3e894a74521a7f63443f7becc7c",
+            "layer_id": 0,
+            "item_type": "layer"
         }
     },
     "signs-markings": {
