@@ -114,6 +114,7 @@ CONFIG = {
             "scene": "scene_375",
             "modified_date_field": "field_1257",
             "socrata_resource_id": "g8w2-8uap",
+        }
     },
     "signs-markings": {
         "view_3099": {
