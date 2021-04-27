@@ -114,6 +114,16 @@ CONFIG = {
             "scene": "scene_375",
             "modified_date_field": "field_1257",
             "socrata_resource_id": "g8w2-8uap",
+        },
+        "view_1597": {
+            "description": "Pole Attachments",
+            "scene": "scene_589",
+            "modified_date_field": "field_1813",
+            "socrata_resource_id": "btg5-ebcy",
+            "location_field_id": "field_182",
+            "service_id": "3a5a777f780447db940534b5808d4ba7",
+            "layer_id": 0,
+            "item_type": "layer"
         }
     },
     "signs-markings": {
