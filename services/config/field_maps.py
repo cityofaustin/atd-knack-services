@@ -74,6 +74,10 @@ FIELD_MAPS = {
             {"src": "field_377", "data-tracker": "field_2420",},
             # Object code
             {"src": "field_920", "data-tracker": "field_3462",},
+            # Re-Order Threshold
+            {"src": "field_922", "data-tracker": "field_3902",},
+            # Re-order Turnaround Time
+            {"src": "field_923", "data-tracker": "field_3903",},
         ]
     },
 }
