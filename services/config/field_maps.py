@@ -64,8 +64,6 @@ FIELD_MAPS = {
                 "data-tracker": "field_1226",
                 "handler": handle_connection,
             },
-            # Requires FDU Review
-            {"src": "field_915", "data-tracker": "field_3803",},
             #  INVENTORY_TRACKING
             {"src": "field_371", "data-tracker": "field_1125",},
             #  STATUS
