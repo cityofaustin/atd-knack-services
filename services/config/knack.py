@@ -62,6 +62,78 @@ CONFIG = {
             "location_field_id": "field_3818",
             "socrata_resource_id": "qd73-bsdg",
         },
+        "view_1564": {
+            "description": "Digital Messaging Signs",
+            "scene": "scene_569",
+            "modified_date_field": "field_1658",
+            "service_id": "e7104494593d4a44a2529e4044ef7d5d",
+            "socrata_resource_id": "4r2j-b4rx",
+            "location_field_id": "field_182",
+            "layer_id": 0,
+            "item_type": "layer",
+        },
+        "view_1829": {
+            "description": "Work Orders Signals",
+            "scene": "scene_683",
+            "modified_date_field": "field_1074",
+            "socrata_resource_id": "hst3-hxcz",
+            "location_field_id": "field_182",
+        },
+        "view_1563": {
+            "description": "Flashing Beacons",
+            "scene": "scene_568",
+            "modified_date_field": "field_1701",
+            "socrata_resource_id": "wczq-5cer",
+            "location_field_id": "field_182",
+            "service_id": "6c4392540b684d598c72e52206d774be",
+            "layer_id": 0,
+            "item_type": "layer",
+        },
+        "view_1333": {
+            "description": "Detectors",
+            "scene": "scene_468",
+            "modified_date_field": "field_1533",
+            "socrata_resource_id": "qpuw-8eeb",
+            "location_field_id": "field_182",
+            "service_id": "47d17ff3ce664849a16b9974979cd12e",
+            "layer_id": 0,
+            "item_type": "layer",
+        },
+        "view_540": {
+            "description": "Travel Sensors",
+            "scene": "scene_188",
+            "modified_date_field": "field_710",
+            "socrata_resource_id": "6yd9-yz29",
+            "location_field_id": "field_182",
+            "service_id": "9776d3e894a74521a7f63443f7becc7c",
+            "layer_id": 0,
+            "item_type": "layer"
+        },
+        "view_1063": {
+            "description": "Signal Retiming",
+            "scene": "scene_375",
+            "modified_date_field": "field_1257",
+            "socrata_resource_id": "g8w2-8uap",
+        },
+        "view_1597": {
+            "description": "Pole Attachments",
+            "scene": "scene_589",
+            "modified_date_field": "field_1813",
+            "socrata_resource_id": "btg5-ebcy",
+            "location_field_id": "field_182",
+            "service_id": "3a5a777f780447db940534b5808d4ba7",
+            "layer_id": 0,
+            "item_type": "layer"
+        },
+        "view_1201": {
+            "description": "Arterial Management Locations",
+            "scene": "scene_425",
+            "modified_date_field": "field_508",
+            "location_field_id": "field_182",
+            "service_id": "66f4b5b0339d4275b64f265dd59727e5",
+            "layer_id": 0,
+            "item_type": "layer"
+        }
     },
     "signs-markings": {
         "view_3099": {

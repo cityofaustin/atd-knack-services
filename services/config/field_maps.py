@@ -64,8 +64,6 @@ FIELD_MAPS = {
                 "data-tracker": "field_1226",
                 "handler": handle_connection,
             },
-            # Requires FDU Review
-            {"src": "field_915", "data-tracker": "field_3803",},
             #  INVENTORY_TRACKING
             {"src": "field_371", "data-tracker": "field_1125",},
             #  STATUS
@@ -74,6 +72,12 @@ FIELD_MAPS = {
             {"src": "field_377", "data-tracker": "field_2420",},
             # Object code
             {"src": "field_920", "data-tracker": "field_3462",},
+            # Re-Order Threshold
+            {"src": "field_922", "data-tracker": "field_3902",},
+            # Re-order Turnaround Time
+            {"src": "field_923", "data-tracker": "field_3903",},
+            # Comment
+            {"src": "field_924", "data-tracker": "field_3905",},
         ]
     },
 }

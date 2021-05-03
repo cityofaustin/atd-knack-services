@@ -99,8 +99,9 @@ The supported environmental variables for using these scripts are listed below. 
 - `AGOL_PASSWORD`: The ArcGIS Online account password
 - `KNACK_APP_ID`: The Knack App ID of the application you need to access
 - `KNACK_API_KEY`: The Knack API key of the application you need to access
-- `SOCRATA_USERNAME`: A Socrata user name that has access to the destination Socrata dataset
-- `SOCRATA_PASSWORD`: The Socrata account password
+- `SOCRATA_API_KEY_ID`: The Socrata API key of the account you need to access
+- `SOCRATA_API_KEY_SECRET`: The Socrata API key secret
+- `SOCRATA_APP_TOKEN`: The Socrata app token
 - `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
 - `PGREST_ENDPOINT`: The URL of the PostgREST server. Currently available at `https://atd-knack-services.austinmobility.io`
 
@@ -117,7 +118,7 @@ Each Knack container which will be processed must have configuration parameters 
 ```python
 CONFIG = {
     <str: app_name>: {
-        <str: continer_id>: <dict: container kwargs>
+        <str: container_id>: <dict: container kwargs>
         },
     },
 }
@@ -128,14 +129,15 @@ CONFIG = {
 
 #### Container properties
 
-- `scene_id` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
-- `modified_date_field_id` (`str`, required): A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
+- `scene` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
+- `modified_date_field` (`str`, required): A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
 - `description` (`str`, optional): a description of what kind of record this container holds.
 - `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
-- `location_field` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
+- `location_field_id` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
 - `service_id` (`str`, optional): The ArcGIS Online feature service identifier. Required to publish to ArcGIS Online.
 - `layer_id` (`int`, optional): The ArcGIS Online layer ID of the the destination layer in the feature service.
 - `item_type` (`str`, optional): The type ArcGIS Online layer. Must be either `layer` or `table`.
+- `dest_apps` (`dict`, optional): Destination app information for [publishing to another knack app](#publish-records-to-another-knack-app)
 
 ## Services (`/services`)
 
@@ -192,6 +194,8 @@ The field's display name can be freely-defined, but the field name must be `id` 
 If you have a conflicting field in your Knack data named "ID", you should as general best practice rename it. If you absolutely must keep your "ID" field in Knack, this column name will be translated to `_id` when publishing to Socrata, so configure your dataset accordingly.
 
 With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces with underscores and making all characters lowercase.
+
+Knack container field names missing from the Socrata dataset's fields will be removed from the payload before publishing.
 
 ```shell
 $ python records_to_socrata.py \

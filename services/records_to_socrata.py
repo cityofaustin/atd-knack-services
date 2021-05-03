@@ -38,7 +38,23 @@ def bools_to_strings(records):
         for k, v in record.items():
             if isinstance(v, bool):
                 record[k] = str(v)
-    return records
+
+
+def remove_unknown_fields(payload, client_metadata):
+    """
+    Modifies payload by removing the fields not found in Socrata
+    Prevents "400 Client Error: Bad Request. Illegal field name sent" response
+    :param payload: records payload to send to Socrata
+    :param client_metadata: Socrata metadata for app
+    """
+    payload_fieldNames = payload[0].keys()
+    column_names = [c["fieldName"] for c in client_metadata["columns"]]
+    unknown_fields = [fieldName for fieldName in payload_fieldNames if fieldName not in column_names]
+    if unknown_fields:
+        logger.info(f"Record field names not in Socrata: {unknown_fields}")
+        for record in payload:
+            for unknown_field in unknown_fields:
+                record.pop(unknown_field, None)
 
 
 def find_field_def(field_defs, field_id):
@@ -50,7 +66,7 @@ def find_field_def(field_defs, field_id):
 
 
 def patch_formatters(field_defs, location_field_id, metadata_socrata):
-    """Replace knackpy's default address fomatter with a custom socrata formatter for
+    """Replace knackpy's default address formatter with a custom socrata formatter for
     either `point` or `location` field types. `location` types are a legacy field
     type, so we have to munge the socrata metadata to determine which type(s) our
     dataset uses."""
@@ -130,6 +146,7 @@ def main():
     payload = [record.format() for record in records]
     payload = format_keys(payload)
     bools_to_strings(payload)
+    remove_unknown_fields(payload, metadata_socrata)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
     )

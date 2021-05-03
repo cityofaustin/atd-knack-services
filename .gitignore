@@ -112,6 +112,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*.env
 
 # Spyder project settings
 .spyderproject
@@ -142,3 +143,5 @@ cython_debug/
 notes.md
 pytest.ini
 env_file
+/dev/pgdata/*
+.idea/
