@@ -124,6 +124,15 @@ CONFIG = {
             "service_id": "3a5a777f780447db940534b5808d4ba7",
             "layer_id": 0,
             "item_type": "layer"
+        },
+        "view_1201": {
+            "description": "Arterial Management Locations",
+            "scene": "scene_425",
+            "modified_date_field": "field_508",
+            "location_field_id": "field_182",
+            "service_id": "66f4b5b0339d4275b64f265dd59727e5",
+            "layer_id": 0,
+            "item_type": "layer"
         }
     },
     "signs-markings": {
