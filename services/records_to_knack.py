@@ -120,7 +120,7 @@ def main():
         return
 
     logger.info(
-        f"Downloading records from app {APP_ID_DEST}, container {container_dest}."
+        f"Updating/creating records in app {APP_ID_DEST}, container {container_dest}."
     )
 
     data_dest = client_postgrest.select(
