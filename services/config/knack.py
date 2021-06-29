@@ -15,14 +15,6 @@ CONFIG = {
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
             "item_type": "layer",
             "layer_id": 0,
-            "dest_apps": {
-                "vza": {
-                    "container": "view_567",
-                    "description": "Signal locations",
-                    "modified_date_field": "field_647",
-                    "object": "object_41",
-                },
-            },
         },
         "view_395": {
             "description": "CCTV Cameras",
@@ -229,13 +221,6 @@ CONFIG = {
                     "object": "object_15",
                 },
             },
-        },
-    },
-    "vza": {
-        "view_567": {
-            "description": "Vision Zero in Action (VZA) signal locations",
-            "scene": "scene_259",
-            "modified_date_field": "field_647",
         },
     },
 }
