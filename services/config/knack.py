@@ -15,14 +15,6 @@ CONFIG = {
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
             "item_type": "layer",
             "layer_id": 0,
-            "dest_apps": {
-                "vza": {
-                    "container": "view_567",
-                    "description": "Signal locations",
-                    "modified_date_field": "field_647",
-                    "object": "object_41",
-                },
-            },
         },
         "view_395": {
             "description": "CCTV Cameras",
@@ -133,6 +125,16 @@ CONFIG = {
             "service_id": "66f4b5b0339d4275b64f265dd59727e5",
             "layer_id": 0,
             "item_type": "layer"
+        },
+        "view_1567": {
+            "description": "Signal Cabinets",
+            "scene": "scene_571",
+            "modified_date_field": "field_1793",
+            "socrata_resource_id": "x23u-shve",
+            "location_field_id": "field_1878",
+            "service_id": "c3fd3bb177cc4291880bbe8c630ed5c4",
+            "layer_id": 0,
+            "item_type": "layer"
         }
     },
     "signs-markings": {
@@ -229,13 +231,6 @@ CONFIG = {
                     "object": "object_15",
                 },
             },
-        },
-    },
-    "vza": {
-        "view_567": {
-            "description": "Vision Zero in Action (VZA) signal locations",
-            "scene": "scene_259",
-            "modified_date_field": "field_647",
         },
     },
 }
