@@ -217,6 +217,30 @@ CONFIG = {
             "item_type": "table",
             "layer_id": 0,
         },
+        "view_3519": {
+            "description": "High Level Work Order Markings",
+            "scene": "scene_1407",
+            "modified_date_field": "field_2150",
+            "socrata_resource_id": "nyhn-669r",
+        },
+        "view_3521": {
+            "description": "High Level Work Order Markings Jobs",
+            "scene": "scene_1407",
+            "modified_date_field": "field_2150",
+            "socrata_resource_id": "vey3-7n3x",
+        },
+        "view_3516": {
+            "description": "High Level Work Order Signs Markings Time Logs",
+            "scene": "scene_1407",
+            "modified_date_field": "field_2150",
+            "socrata_resource_id": "qvth-gwdv",
+        },
+        "view_3518": {
+            "description": "High Level Work Orders Signs",
+            "scene": "scene_1407",
+            "modified_date_field": "field_2150",
+            "socrata_resource_id": "ivss-na93",
+        }
     },
     "finance-purchasing": {
         "view_788": {
