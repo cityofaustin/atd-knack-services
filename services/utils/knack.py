@@ -18,6 +18,8 @@ def socrata_formatter_point(value):
 
 
 def socrata_formatter_multipoint(value):
+    # Location type: Multipoint
+    # https://dev.socrata.com/docs/datatypes/multipoint.html#,
     if not value:
         return value
 
