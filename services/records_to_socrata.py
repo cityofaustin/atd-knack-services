@@ -79,6 +79,8 @@ def patch_formatters(field_defs, location_field_id, metadata_socrata):
         formatter_func = utils.knack.socrata_formatter_point
     elif socrata_field_type == "location":
         formatter_func = utils.knack.socrata_formatter_location
+    elif socrata_field_type == "multipoint":
+        formatter_func = utils.knack.socrata_formatter_multipoint
     else:
         raise ValueError(
             f"Socrata data type for {location_field_id} ({field_name_knack}) is not a `point` or `location` type"  # noqa:E501
