@@ -17,6 +17,21 @@ def socrata_formatter_point(value):
     }
 
 
+def socrata_formatter_multipoint(value):
+    # Location type: Multipoint
+    # https://dev.socrata.com/docs/datatypes/multipoint.html#,
+    if not value:
+        return value
+
+    try:
+        return {
+            "type": "MultiPoint",
+            "coordinates": [[float(v["longitude"]), float(v["latitude"])] for v in value],
+        }
+    except ValueError:
+        return None
+
+
 def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central"):
     """Return a Knack filter to retrieve records on or after a given date field/value.
     If timestamp is None, defaults to 01/01/1970.

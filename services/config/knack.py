@@ -146,6 +146,7 @@ CONFIG = {
             "layer_id": 1,
             "item_type": "layer",
             "location_field_id": None,
+            "socrata_resource_id": "nyhn-669r",
         },
         "view_3100": {
             "description": "Markings jobs",
@@ -155,6 +156,7 @@ CONFIG = {
             "layer_id": 0,
             "item_type": "layer",
             "location_field_id": None,
+            "socrata_resource_id": "vey3-7n3x",
         },
         "view_3096": {
             "description": "Markings work order attachments",
@@ -200,6 +202,7 @@ CONFIG = {
             "layer_id": 1,
             "item_type": "layer",
             "location_field_id": "field_3300",
+            "socrata_resource_id": "ivss-na93",
         },
         "view_3126": {
             "description": "Signs work order materials",
@@ -216,6 +219,12 @@ CONFIG = {
             "service_id": "93e29b23c39b4110ab0bbefde79b4063",
             "item_type": "table",
             "layer_id": 0,
+        },
+        "view_3516": {
+            "description": "High Level Work Order Signs Markings Time Logs",
+            "scene": "scene_1407",
+            "modified_date_field": "field_2150",
+            "socrata_resource_id": "qvth-gwdv",
         },
     },
     "finance-purchasing": {
