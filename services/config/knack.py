@@ -232,6 +232,8 @@ CONFIG = {
         # similar views, one with connection fields added from markings and the other with fields
         # added from signs. They map one set of columns in Socrata, which matches on the knack field
         # name rather than key.
+        # note also that they do not have a "modified_date_field". As a result all records will always
+        # be processes. OK in this case since they accumulate at ~500/year.
         "view_3526": {
             "description": "Signs reimburesement tracking",
             "scene": "scene_1249",
