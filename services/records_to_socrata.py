@@ -40,6 +40,14 @@ def bools_to_strings(records):
                 record[k] = str(v)
 
 
+def handle_arrays(records):
+    for record in records:
+        for k, v in record.items():
+            if isinstance(v, list):
+                # assumes values in list can be coerced to to strings
+                record[k] = ", ".join([str(i) for i in v])
+
+
 def remove_unknown_fields(payload, client_metadata):
     """
     Modifies payload by removing the fields not found in Socrata
@@ -148,6 +156,7 @@ def main():
     payload = [record.format() for record in records]
     payload = format_keys(payload)
     bools_to_strings(payload)
+    handle_arrays(payload)
     remove_unknown_fields(payload, metadata_socrata)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
