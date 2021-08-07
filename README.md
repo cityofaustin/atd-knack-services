@@ -34,7 +34,7 @@ These services are designed to keep Knack application data in sync with external
 
 Incremental loading is made possible by referencing a record's timestamp throughout the pipleine. Specifically:
 
-- The [Knack configuration file](#knack-config) requires that all entries include a `modified_date_field_id`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in funcionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
+- The [Knack configuration file](#knack-config) allows for a `modified_date_field`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in funcionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
 
 - The [Postgres data store](#postgres-data-store) relies on a stored procedure to maintain an `updated_at` timestamp which is set to the current datetime whenever a record is created or modified.
 
@@ -130,7 +130,7 @@ CONFIG = {
 #### Container properties
 
 - `scene` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
-- `modified_date_field` (`str`, required): A knack field ID (e.g., `field_123`) which defines when each record was last modified. This field will be used to filter records for each ETL run.
+- `modified_date_field` (`str`, optional): A knack field ID (e.g., `field_123`) which defines when each record was last modified. If provided, this field will be used to filter records for each ETL run.
 - `description` (`str`, optional): a description of what kind of record this container holds.
 - `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
 - `location_field_id` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
