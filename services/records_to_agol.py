@@ -17,7 +17,7 @@ PASSWORD = os.getenv("AGOL_PASSWORD")
 APP_ID = os.getenv("KNACK_APP_ID")
 PGREST_JWT = os.getenv("PGREST_JWT")
 PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
-
+MAX_RETRIES = 3
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -27,6 +27,30 @@ def chunks(lst, n):
 
 def format_filter_date(date_from_args):
     return "1970-01-01" if not date_from_args else arrow.get(date_from_args).isoformat()
+
+
+def resilient_layer_request(func, args, max_retries=MAX_RETRIES):
+    """
+    An ArcGIS request wrapper to enable re-trying. The wrapper will only suppress timeout
+    exceptions from the Rest API. Our separate response handler utility catches API
+    errors.
+    """
+    attempts = 0
+    while True:
+        attempts += 1
+        try:
+            return func(**args)
+        except Exception as e:
+            """
+            The ArcGIS Python API raises a generic Exception class on timeout, so we parse the
+            Exception content to be sure we pass the right case. The timeout message string
+            we want to ignore:
+                `Exception: Your request has timed out.`
+            """
+            if "timed out" not in e.__str__().lower() or attempts == max_retries:
+                raise e
+            logger.info(f"Retrying timed-out request on attempt #{attempts} of {max_retries}")
+            pass
 
 
 def main():
@@ -107,7 +131,7 @@ def main():
         datasets.
         """
         logger.info("Deleting all features...")
-        res = layer.delete_features(where="1=1", future=True)
+        res = resilient_layer_request(layer.delete_features, {"where": "1=1", "future": True})
         # returns a "<Future>" response class which does not appear to be documented
         while res._state != "FINISHED":
             logger.info(f"Response state: {res._state}. Sleeping for 1 second")
@@ -131,14 +155,14 @@ def main():
         keys = [f'\'{f["attributes"][key]}\'' for f in features]
         for key_chunk in chunks(keys, 100):
             key_list_stringified = ",".join(key_chunk)
-            res = layer.delete_features(where=f"{key} in ({key_list_stringified})")
+            res = resilient_layer_request(layer.delete_features, {"where": f"{key} in ({key_list_stringified})"})
             utils.agol.handle_response(res)
 
     logger.info("Uploading features...")
 
     for features_chunk in chunks(features, 500):
         logger.info("Uploading chunk...")
-        res = layer.edit_features(adds=features_chunk, rollback_on_failure=False)
+        res = resilient_layer_request(layer.edit_features, {"adds": features_chunk, "rollback_on_failure": False})
         utils.agol.handle_response(res)
 
 
