@@ -19,6 +19,7 @@ PGREST_JWT = os.getenv("PGREST_JWT")
 PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 MAX_RETRIES = 3
 
+
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
@@ -49,7 +50,9 @@ def resilient_layer_request(func, args, max_retries=MAX_RETRIES):
             """
             if "timed out" not in e.__str__().lower() or attempts == max_retries:
                 raise e
-            logger.info(f"Retrying timed-out request on attempt #{attempts} of {max_retries}")
+            logger.info(
+                f"Retrying timed-out request on attempt #{attempts} of {max_retries}"
+            )
             pass
 
 
@@ -131,7 +134,9 @@ def main():
         datasets.
         """
         logger.info("Deleting all features...")
-        res = resilient_layer_request(layer.delete_features, {"where": "1=1", "future": True})
+        res = resilient_layer_request(
+            layer.delete_features, {"where": "1=1", "future": True}
+        )
         # returns a "<Future>" response class which does not appear to be documented
         while res._state != "FINISHED":
             logger.info(f"Response state: {res._state}. Sleeping for 1 second")
@@ -140,8 +145,8 @@ def main():
 
     else:
         """
-        Simulate an upsert by deleting features from AGOL if they exist. 
-        
+        Simulate an upsert by deleting features from AGOL if they exist.
+
         The arcgis package does have a method that supports upserting: append()
         https://developers.arcgis.com/python/api-reference/arcgis.features.toc.html#featurelayer  # noqa E501
 
@@ -155,14 +160,18 @@ def main():
         keys = [f'\'{f["attributes"][key]}\'' for f in features]
         for key_chunk in chunks(keys, 100):
             key_list_stringified = ",".join(key_chunk)
-            res = resilient_layer_request(layer.delete_features, {"where": f"{key} in ({key_list_stringified})"})
+            res = resilient_layer_request(
+                layer.delete_features, {"where": f"{key} in ({key_list_stringified})"}
+            )
             utils.agol.handle_response(res)
 
     logger.info("Uploading features...")
 
     for features_chunk in chunks(features, 500):
         logger.info("Uploading chunk...")
-        res = resilient_layer_request(layer.edit_features, {"adds": features_chunk, "rollback_on_failure": False})
+        res = resilient_layer_request(
+            layer.edit_features, {"adds": features_chunk, "rollback_on_failure": False}
+        )
         utils.agol.handle_response(res)
 
 
