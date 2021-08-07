@@ -130,7 +130,7 @@ CONFIG = {
 #### Container properties
 
 - `scene` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
-- `modified_date_field` (`str`, optional): A knack field ID (e.g., `field_123`) which defines when each record was last modified. If provided, this field will be used to filter records for each ETL run.
+- `modified_date_field` (`str`, optional): A knack field ID (e.g., `field_123`) which defines when each record was last modified. If provided, this field will be used to filter records for each ETL run. If not provided, all records will always be fetched/processed from the source Knack container.
 - `description` (`str`, optional): a description of what kind of record this container holds.
 - `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
 - `location_field_id` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
