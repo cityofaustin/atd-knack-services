@@ -155,9 +155,10 @@ def main():
     # apply transforms to meet socrata's expectations
     payload = [record.format() for record in records]
     payload = format_keys(payload)
+    # remove unknown fields first to reduce extra processing when doing subsequent transforms
+    remove_unknown_fields(payload, metadata_socrata)
     bools_to_strings(payload)
     handle_arrays(payload)
-    remove_unknown_fields(payload, metadata_socrata)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
     )
