@@ -67,7 +67,7 @@ def main():
             f"No config entry found for app: {args.app_name}, container: {container}"
         )
 
-    modified_date_field = app_config["modified_date_field"]
+    modified_date_field = app_config.get("modified_date_field")
 
     filters = utils.knack.date_filter_on_or_after(
         args.date, modified_date_field, tzinfo=APP_TIMEZONE
