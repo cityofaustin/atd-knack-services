@@ -223,7 +223,7 @@ CONFIG = {
         "view_3307": {
             "description": "High Level Work Order Signs Markings Time Logs",
             "scene": "scene_1249",
-            "modified_date_field": "field_2150",
+            "modified_date_field": "field_2559",
             "socrata_resource_id": "qvth-gwdv",
         },
         # Note that views 3526 and 3527 push to the same socrata dataset. This object is a child to
