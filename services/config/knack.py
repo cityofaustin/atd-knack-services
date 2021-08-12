@@ -220,20 +220,27 @@ CONFIG = {
             "item_type": "table",
             "layer_id": 0,
         },
-        "view_3307": {
-            "description": "High Level Work Order Signs Markings Time Logs",
-            "scene": "scene_1249",
-            "modified_date_field": "field_2559",
-            "socrata_resource_id": "qvth-gwdv",
-        },
-        # Note that views 3526 and 3527 push to the same socrata dataset. This object is a child to
+       # Note that views 3307 and 3528 push to the same socrata dataset. This object is a child to
         # both work_orders_markings and work_orders_signs - which share duplicate field names, notably
         # ATD_WORK_ORDER_ID, WORK_TYPE, and LOCATION_NAME. So we source the reimbursements from two
         # similar views, one with connection fields added from markings and the other with fields
         # added from signs. They map one set of columns in Socrata, which matches on the knack field
         # name rather than key.
-        # note also that they do not have a "modified_date_field". As a result all records will always
-        # be processes. OK in this case since they accumulate at ~500/year.
+        "view_3307": {
+            "description": "Work Order Markings Time Logs",
+            "scene": "scene_1249",
+            "modified_date_field": "field_2559",
+            "socrata_resource_id": "qvth-gwdv",
+        },
+        "view_3528": {
+            "description": "Work Order Signs Time Logs",
+            "scene": "scene_1249",
+            "modified_date_field": "field_2559",
+            "socrata_resource_id": "qvth-gwdv",
+        },
+        # Note that views 3526 and 3527 push to the same socrata dataset (see note above). Also
+        # that they do not have a "modified_date_field". As a result all records will always be
+        # processed. OK in this case since they accumulate at ~500/year.
         "view_3526": {
             "description": "Signs reimburesement tracking",
             "scene": "scene_1249",
