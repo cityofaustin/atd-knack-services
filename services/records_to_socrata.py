@@ -40,6 +40,14 @@ def bools_to_strings(records):
                 record[k] = str(v)
 
 
+def handle_arrays(records):
+    for record in records:
+        for k, v in record.items():
+            if isinstance(v, list):
+                # assumes values in list can be coerced to to strings
+                record[k] = ", ".join([str(i) for i in v])
+
+
 def remove_unknown_fields(payload, client_metadata):
     """
     Modifies payload by removing the fields not found in Socrata
@@ -47,9 +55,9 @@ def remove_unknown_fields(payload, client_metadata):
     :param payload: records payload to send to Socrata
     :param client_metadata: Socrata metadata for app
     """
-    payload_fieldNames = payload[0].keys()
+    payload_field_names = payload[0].keys()
     column_names = [c["fieldName"] for c in client_metadata["columns"]]
-    unknown_fields = [fieldName for fieldName in payload_fieldNames if fieldName not in column_names]
+    unknown_fields = [field_name for field_name in payload_field_names if field_name not in column_names]
     if unknown_fields:
         logger.info(f"Record field names not in Socrata: {unknown_fields}")
         for record in payload:
@@ -79,6 +87,8 @@ def patch_formatters(field_defs, location_field_id, metadata_socrata):
         formatter_func = utils.knack.socrata_formatter_point
     elif socrata_field_type == "location":
         formatter_func = utils.knack.socrata_formatter_location
+    elif socrata_field_type == "multipoint":
+        formatter_func = utils.knack.socrata_formatter_multipoint
     else:
         raise ValueError(
             f"Socrata data type for {location_field_id} ({field_name_knack}) is not a `point` or `location` type"  # noqa:E501
@@ -145,8 +155,10 @@ def main():
     # apply transforms to meet socrata's expectations
     payload = [record.format() for record in records]
     payload = format_keys(payload)
-    bools_to_strings(payload)
+    # remove unknown fields first to reduce extra processing when doing subsequent transforms
     remove_unknown_fields(payload, metadata_socrata)
+    bools_to_strings(payload)
+    handle_arrays(payload)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
     )

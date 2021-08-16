@@ -17,9 +17,23 @@ def socrata_formatter_point(value):
     }
 
 
+def socrata_formatter_multipoint(value):
+    # Location type: Multipoint
+    # https://dev.socrata.com/docs/datatypes/multipoint.html#,
+    if not value:
+        return value
+
+    try:
+        return {
+            "type": "MultiPoint",
+            "coordinates": [[float(v["longitude"]), float(v["latitude"])] for v in value],
+        }
+    except ValueError:
+        return None
+
+
 def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central"):
     """Return a Knack filter to retrieve records on or after a given date field/value.
-    If timestamp is None, defaults to 01/01/1970.
 
     You should know:
     - Knack ignores time when querying by date. So we drop it when formatting the
@@ -31,13 +45,10 @@ def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central"):
     - Knack is completely timezone naive. If you provide a date, it assumes the date
     is referencing the same locality to which the Knack app is configured.
     """
-    date_str = timestamp or 0
+    if not timestamp or not date_field:
+        return None
 
-    date_str = (
-        arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY")
-        if timestamp
-        else "01/01/1970"
-    )
+    date_str = arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY")
 
     return {
         "match": "or",
