@@ -135,6 +135,12 @@ CONFIG = {
             "service_id": "c3fd3bb177cc4291880bbe8c630ed5c4",
             "layer_id": 0,
             "item_type": "layer"
+        },
+        "view_3003": {
+            "description": "Signal detection status logs",
+            "scene": "scene_514",
+            "modified_date_field": "field_2565",
+            "socrata_resource_id": "e4b6-xseb"
         }
     },
     "signs-markings": {
