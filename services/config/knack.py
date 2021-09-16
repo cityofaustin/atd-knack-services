@@ -226,7 +226,7 @@ CONFIG = {
             "item_type": "table",
             "layer_id": 0,
         },
-       # Note that views 3307 and 3528 push to the same socrata dataset. This object is a child to
+        # Note that views 3307 and 3528 push to the same socrata dataset. This object is a child to
         # both work_orders_markings and work_orders_signs - which share duplicate field names, notably
         # ATD_WORK_ORDER_ID, WORK_TYPE, and LOCATION_NAME. So we source the time logs from two
         # similar views, one with connection fields added from markings and the other with fields
