@@ -47,7 +47,9 @@ def socrata_formatter_multipoint(value):
     try:
         return {
             "type": "MultiPoint",
-            "coordinates": [[float(v["longitude"]), float(v["latitude"])] for v in value],
+            "coordinates": [
+                [float(v["longitude"]), float(v["latitude"])] for v in value
+            ],
         }
     except ValueError:
         return None
