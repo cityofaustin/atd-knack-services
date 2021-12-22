@@ -9,10 +9,10 @@ import utils
 
 
 def handle_floating_timestamps(records, floating_timestamp_fields):
-    """ Socrata's fixed timestamp dataType does not allow tz info :(
-        (Alternatively, one could setup a transform in Socrata to convert the datatype
-        to a fixed timestamp:
-        https://dev.socrata.com/docs/transforms/to_fixed_timestamp.html)
+    """Socrata's fixed timestamp dataType does not allow tz info :(
+    (Alternatively, one could setup a transform in Socrata to convert the datatype
+    to a fixed timestamp:
+    https://dev.socrata.com/docs/transforms/to_fixed_timestamp.html)
     """
     for record in records:
         for field in floating_timestamp_fields:
@@ -21,16 +21,6 @@ def handle_floating_timestamps(records, floating_timestamp_fields):
                 continue
             record[field] = arrow.get(dt).format("YYYY-MM-DDTHH:mm:ss")
     return records
-
-
-def format_keys(records):
-    """ This script assumes that the source knack records' field labels map exactly
-    to the socrata API column names, given that they are converted to lower case and
-    spaces are replaced with underscores."""
-    return [
-        {key.lower().replace(" ", "_"): val for key, val in record.items()}
-        for record in records
-    ]
 
 
 def bools_to_strings(records):
@@ -57,7 +47,11 @@ def remove_unknown_fields(payload, client_metadata):
     """
     payload_field_names = payload[0].keys()
     column_names = [c["fieldName"] for c in client_metadata["columns"]]
-    unknown_fields = [field_name for field_name in payload_field_names if field_name not in column_names]
+    unknown_fields = [
+        field_name
+        for field_name in payload_field_names
+        if field_name not in column_names
+    ]
     if unknown_fields:
         logger.info(f"Record field names not in Socrata: {unknown_fields}")
         for record in payload:
@@ -110,7 +104,7 @@ def main():
 
     container = args.container
     config = CONFIG.get(args.app_name).get(container)
-    
+
     if not config:
         raise ValueError(
             f"No config entry found for app: {args.app_name}, container: {container}"
@@ -154,7 +148,8 @@ def main():
 
     # apply transforms to meet socrata's expectations
     payload = [record.format() for record in records]
-    payload = format_keys(payload)
+    # format knack field names as lowercase/no spaces
+    payload = [utils.shared.format_keys(record) for record in payload]
     # remove unknown fields first to reduce extra processing when doing subsequent transforms
     remove_unknown_fields(payload, metadata_socrata)
     bools_to_strings(payload)

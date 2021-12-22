@@ -1,3 +1,6 @@
+from . import shared
+
+
 def sanitize_html(record, field_names):
     """
     Temporary hack until we disable html content validation on feature services
@@ -48,6 +51,9 @@ def build_feature(
 ):
     feature = {}
     feature["attributes"] = sanitize_html(record.format(), fields_names_to_sanitize)
+    # format knack field names as lowercase/no spaces
+    feature["attributes"] = shared.format_keys(feature["attributes"])
+    # handle geometry
     if location_field_id:
         record_geometry = record[location_field_id]
         if not record_geometry:
@@ -62,7 +68,7 @@ def build_feature(
 
 
 def handle_response(response):
-    """ arcgis does not raise HTTP errors for data-related issues; we must manually
+    """arcgis does not raise HTTP errors for data-related issues; we must manually
     parse the response"""
     if not response:
         return
