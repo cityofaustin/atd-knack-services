@@ -3,8 +3,11 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [production, staging]
-
+    branches:
+      - production
+  pull_request:
+    branches:
+      - production
 jobs:
   main:
     runs-on: ubuntu-latest
