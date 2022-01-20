@@ -159,7 +159,12 @@ def main():
     )
     handle_floating_timestamps(payload, floating_timestamp_fields)
 
-    method = "upsert" if args.date else "replace"
+    timestamp_key = config.get("append_timestamps", {}).get("key")
+
+    if timestamp_key:
+        utils.socrata.append_current_timestamp(payload, timestamp_key)
+
+    method = "replace" if not args.date and not config.get("no_replace") else "upsert"
 
     utils.socrata.publish(
         method=method, resource_id=resource_id, payload=payload, client=client_socrata
