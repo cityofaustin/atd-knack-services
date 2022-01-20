@@ -1,5 +1,7 @@
+from datetime import datetime
 import os
 
+import arrow
 import sodapy
 
 
@@ -21,6 +23,25 @@ def get_floating_timestamp_fields(resource_id, metadata):
     ]
 
 
+def append_current_timestamp(records, key, tzinfo="US/Central", format_="YYYY-MM-DDTHH:mm:ss"):
+    """Appends an ISO-8601 timestamp to each record.
+
+    The timestamp is created in US/Central time without the tz string. This
+    is unfortunately the socrata way.
+
+    Args:
+        records (list): A list of record dicts
+        key (str): The key which will be added to each record dict with the timestamp value
+        format_ (str): The arrow formatting token string 
+
+    Returns:
+        None: the records are updated in place.
+    """
+    now = arrow.now().to(tzinfo).format(format_)
+    for record in records:
+        record[key] = now
+
+
 def get_client(host="data.austintexas.gov", timeout=30):
     SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
     SOCRATA_API_KEY_ID = os.getenv("SOCRATA_API_KEY_ID")
@@ -31,7 +52,7 @@ def get_client(host="data.austintexas.gov", timeout=30):
         SOCRATA_APP_TOKEN,
         username=SOCRATA_API_KEY_ID,
         password=SOCRATA_API_KEY_SECRET,
-        timeout=timeout
+        timeout=timeout,
     )
 
 
