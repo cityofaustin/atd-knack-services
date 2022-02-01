@@ -159,7 +159,7 @@ def main():
     )
     handle_floating_timestamps(payload, floating_timestamp_fields)
 
-    timestamp_key = config.get("append_timestamps", {}).get("key")
+    timestamp_key = config.get("append_timestamps_socrata", {}).get("key")
 
     if timestamp_key:
         utils.socrata.append_current_timestamp(payload, timestamp_key)

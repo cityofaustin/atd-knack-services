@@ -44,7 +44,7 @@ CONFIG = {
             "scene": "scene_1170",
             "modified_date_field": "field_1229",
             "socrata_resource_id": "hcaw-evi2",
-            "append_timestamps": {"key": "published_date"},
+            "append_timestamps_socrata": {"key": "published_date"},
             "no_replace_socrata": True
         },
         "view_2908": {
