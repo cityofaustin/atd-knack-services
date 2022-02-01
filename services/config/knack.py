@@ -45,7 +45,7 @@ CONFIG = {
             "modified_date_field": "field_1229",
             "socrata_resource_id": "hcaw-evi2",
             "append_timestamps": {"key": "published_date"},
-            "no_replace": True
+            "no_replace_socrata": True
         },
         "view_2908": {
             "description": "Metrobike kiosks",
