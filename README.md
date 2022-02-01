@@ -145,6 +145,7 @@ CONFIG = {
 - `item_type` (`str`, optional): The type ArcGIS Online layer. Must be either `layer` or `table`.
 - `dest_apps` (`dict`, optional): Destination app information for [publishing to another knack app](#publish-records-to-another-knack-app)
 - `no_replace_socrata` (`bool`, optional): If true, blocks a `replace` operation on the destination Socrata dataset.
+- `append_timestamps_socrata` (`dict` (`{'key': <timestamp_column_name> (str)}`>, optional): If present, a current timestamp will be added to each record at the given column name `key`.
 
 ## Services (`/services`)
 
