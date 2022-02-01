@@ -144,6 +144,7 @@ CONFIG = {
 - `layer_id` (`int`, optional): The ArcGIS Online layer ID of the the destination layer in the feature service.
 - `item_type` (`str`, optional): The type ArcGIS Online layer. Must be either `layer` or `table`.
 - `dest_apps` (`dict`, optional): Destination app information for [publishing to another knack app](#publish-records-to-another-knack-app)
+- `no_replace_socrata` (`bool`, optional): If true, blocks a `replace` operation on the destination Socrata dataset.
 
 ## Services (`/services`)
 
@@ -214,7 +215,8 @@ $ python records_to_socrata.py \
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the object or view key of the source container
-- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
+*completely replaced*.
 
 ### Publish records to ArcGIS Online
 
@@ -243,7 +245,8 @@ $ python records_to_agol.py \
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the object or view key of the source container
-- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
+*completely replaced*.
 
 ### Publish records to another Knack app
 
