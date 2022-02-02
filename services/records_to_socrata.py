@@ -159,7 +159,20 @@ def main():
     )
     handle_floating_timestamps(payload, floating_timestamp_fields)
 
-    method = "upsert" if args.date else "replace"
+    timestamp_key = config.get("append_timestamps_socrata", {}).get("key")
+
+    if timestamp_key:
+        utils.socrata.append_current_timestamp(payload, timestamp_key)
+
+    method = "replace" if not args.date else "upsert"
+
+    if config.get("no_replace_socrata") and method == "replace":
+        raise ValueError(
+            """
+            Replacement of this Socrata dataset is not allowed. Specify a date range or
+            modify the 'no_replace_socrata' setting in this container's config.
+            """
+        )
 
     utils.socrata.publish(
         method=method, resource_id=resource_id, payload=payload, client=client_socrata

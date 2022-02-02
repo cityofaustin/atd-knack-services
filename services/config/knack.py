@@ -40,9 +40,12 @@ CONFIG = {
             "location_field_id": "field_182",
         },
         "view_2863": {
-            "description": "Inventory items",
+            "description": "Inventory items (finance system integration + socrata pub)",
             "scene": "scene_1170",
             "modified_date_field": "field_1229",
+            "socrata_resource_id": "hcaw-evi2",
+            "append_timestamps_socrata": {"key": "published_date"},
+            "no_replace_socrata": True
         },
         "view_2908": {
             "description": "Metrobike kiosks",
@@ -99,7 +102,7 @@ CONFIG = {
             "location_field_id": "field_182",
             "service_id": "9776d3e894a74521a7f63443f7becc7c",
             "layer_id": 0,
-            "item_type": "layer"
+            "item_type": "layer",
         },
         "view_1063": {
             "description": "Signal Retiming",
@@ -115,7 +118,7 @@ CONFIG = {
             "location_field_id": "field_182",
             "service_id": "3a5a777f780447db940534b5808d4ba7",
             "layer_id": 0,
-            "item_type": "layer"
+            "item_type": "layer",
         },
         "view_1201": {
             "description": "Arterial Management Locations",
@@ -124,7 +127,7 @@ CONFIG = {
             "location_field_id": "field_182",
             "service_id": "66f4b5b0339d4275b64f265dd59727e5",
             "layer_id": 0,
-            "item_type": "layer"
+            "item_type": "layer",
         },
         "view_1567": {
             "description": "Signal Cabinets",
@@ -134,14 +137,14 @@ CONFIG = {
             "location_field_id": "field_1878",
             "service_id": "c3fd3bb177cc4291880bbe8c630ed5c4",
             "layer_id": 0,
-            "item_type": "layer"
+            "item_type": "layer",
         },
         "view_3003": {
             "description": "Signal detection status logs",
             "scene": "scene_514",
             "modified_date_field": "field_2565",
-            "socrata_resource_id": "e4b6-xseb"
-        }
+            "socrata_resource_id": "e4b6-xseb",
+        },
     },
     "signs-markings": {
         "view_3099": {
