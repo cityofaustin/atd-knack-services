@@ -145,6 +145,15 @@ CONFIG = {
             "modified_date_field": "field_2565",
             "socrata_resource_id": "e4b6-xseb",
         },
+        "view_3086": {
+            "description": "School Beacons",
+            "scene": "scene_418",
+            "modified_date_field": "field_4038",
+            "location_field_id": "field_182",
+            "service_id": "ebde70df086942c286dcf9f3f3449f2f",
+            "layer_id": 0,
+            "item_type": "layer",
+        },
     },
     "signs-markings": {
         "view_3099": {
