@@ -18,6 +18,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
     - [Configure a Knack container](#configuring-a-knack-container) 
     - [Dealing with Schema Changes](#dealing-with-schema-changes)
     - [Automate w/ Airflow and Docker](#automate-tasks-with-airflow-and-docker)
+- [Troubleshooting](#troubleshooting)
 
 ## Core concepts
 
@@ -355,3 +356,30 @@ To avoid repeated API calls, Knack app metadata is stored alongside records in t
 See [atd-airflow](https://github.com/cityofaustin/atd-airflow) for examples of how these services can be deployed to run on a schedule. Airflow deployments rely on Docker, and this repo includes a `Dockerfile` which defines the runtime environment for all services, and is automatically built and pushed to DockerHub using Github actions.
 
 If you add a Python package dependency to any service, adding that package to `requirements.txt` is enough to ensure that the next Docker build will include that package in the environment. Our Airflow instance refreshes its DAG's Docker containers every 5 minutes, so it will always be running the latest environment.
+
+
+## Troubleshooting
+
+### ArcGIS Online (AGOL)
+
+Depending on the presence of the `--date` argument, `records_to_agol.py` uses two different approaches to delete AGOL records. 
+
+When the `--date` argument is present, the script simulates an upsert by deleting from AGOL any records present in the current payload. This is done with a `WHERE` clause:
+
+```sql
+WHERE 'id' in <arrray-of-knack-ids>
+```
+
+Alternatively, when no `--date` argument is present, all records in the destination layer are deleted with:
+
+```sql
+WHERE 1=1
+```
+
+When troubleshooting an obscure AGOL error, it's often a good starting point to manually run `records_to_agol.py` without the `--date` argument, as this can seemingly clear up any underlying versioning/indexing issues within AGOL's internal state. 
+
+One such error message looks like this:
+
+```
+Error: Violation of PRIMARY KEY constraint [value]. Cannot insert duplicate key in object [value]. The duplicate key value is [value].
+```
