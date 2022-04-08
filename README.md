@@ -18,7 +18,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
     - [Configure a Knack container](#configuring-a-knack-container) 
     - [Dealing with Schema Changes](#dealing-with-schema-changes)
     - [Automate w/ Airflow and Docker](#automate-tasks-with-airflow-and-docker)
--[Troubleshooting](#troubleshooting)
+- [Troubleshooting](#troubleshooting)
 
 ## Core concepts
 
