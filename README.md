@@ -18,6 +18,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
     - [Configure a Knack container](#configuring-a-knack-container) 
     - [Dealing with Schema Changes](#dealing-with-schema-changes)
     - [Automate w/ Airflow and Docker](#automate-tasks-with-airflow-and-docker)
+-[Troubleshooting](#troubleshooting)
 
 ## Core concepts
 
@@ -357,7 +358,7 @@ See [atd-airflow](https://github.com/cityofaustin/atd-airflow) for examples of h
 If you add a Python package dependency to any service, adding that package to `requirements.txt` is enough to ensure that the next Docker build will include that package in the environment. Our Airflow instance refreshes its DAG's Docker containers every 5 minutes, so it will always be running the latest environment.
 
 
-### Troubleshooting
+## Troubleshooting
 
 ### ArcGIS Online (AGOL)
 
