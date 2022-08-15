@@ -10,14 +10,14 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
 - [System Architecture](#system-architecture)
 - [Configuration](#configuration)
 - [Services](<#services-(`/services`)>)
-    - [Publish to Open Data Portal](#publish-records-to-the-open-data-portal)
-    - [Publish to ArcGIS Online](#publish-records-to-arcgis-online)
-    - [Publish to another Knack app](#publish-records-to-another-knack-app)
+  - [Publish to Open Data Portal](#publish-records-to-the-open-data-portal)
+  - [Publish to ArcGIS Online](#publish-records-to-arcgis-online)
+  - [Publish to another Knack app](#publish-records-to-another-knack-app)
 - [Utils](<#utils-(`/services/utils`)>)
 - [Common Tasks](#common-tasks)
-    - [Configure a Knack container](#configuring-a-knack-container) 
-    - [Dealing with Schema Changes](#dealing-with-schema-changes)
-    - [Automate w/ Airflow and Docker](#automate-tasks-with-airflow-and-docker)
+  - [Configure a Knack container](#configuring-a-knack-container)
+  - [Dealing with Schema Changes](#dealing-with-schema-changes)
+  - [Automate w/ Airflow and Docker](#automate-tasks-with-airflow-and-docker)
 - [Troubleshooting](#troubleshooting)
 
 ## Core concepts
@@ -155,6 +155,8 @@ CONFIG = {
 Use `metadata_to_postgrest.py` to load an application's metadata to Postgres. Metadata
 will be proessed for the app ID provided in the `KNACK_APP_ID` environmental variable.
 
+To avoid repeated API calls, Knack app metadata is stored alongside records in the Postgres database. This means that schema changes in your Knack app need to be kept in sync with Postgres in order to ensure that records published to downstream systems reflect these changes. As such, you should update the Knack metadata stored in Postgres whenever you make a schema change to a container. After updating the metadata, you should also run a full replacement of the Knack record data from Knack to Postgres, and from Postgres to any downstream recipients. See also [Dealing with Schema Changes](#dealing-with-schema-changes).
+
 ```shell
 $ python metadata_to_postgrest.py
 ```
@@ -218,7 +220,7 @@ $ python records_to_socrata.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
-*completely replaced*.
+  _completely replaced_.
 
 ### Publish records to ArcGIS Online
 
@@ -248,7 +250,7 @@ $ python records_to_agol.py \
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
-*completely replaced*.
+  _completely replaced_.
 
 ### Publish records to another Knack app
 
@@ -349,7 +351,27 @@ Note also that that. as a best practice, you should not use connection fields in
 
 ### Dealing with schema changes
 
-To avoid repeated API calls, Knack app metadata is stored alongside records in the Postgres database. This means that schema changes in your Knack app need to be kept in sync with Postgres in order to ensure that records published to downstream systems reflect these changes. As such, you should update the Knack metadata stored in Postgres whenever you make a schema change to a container. After updating the metadata, you should also run a full replacement of the Knack record data from Knack to Postgres, and from Postgres to any downstream recipients.
+Follow these steps to add a new column to a dataset.
+
+1. Add the new column to any destination datasets. Keep in mind that the column name in the destination dataset must match the column name in the source Knack object, except that all spaces will be replaced with underscores and all characters converted to lowercase.
+
+2. Add the new column to the Knack view (aka container). Doing this will break the ETL until you complete the steps that follow!
+
+3. Update the Knack app's metadata in Postgrest. See also [Load app metadata to Postgres](#load-app-metadata-to-postgres).
+
+```shell
+$ python metadata_to_postgrest.py
+```
+
+4. Re-load _all_ records from Knack to Postgrest. This ensures that every record matches the new schema. Do this by omitting the `--date/-d` argument from the shell command:
+
+```shell
+$ python records_to_postgrest.py \
+    -a some-app \
+    -c view_1 \
+```
+
+5. Run all downstream ETLs (`records_to_agol.py`, `records_to_socrata.py`, etc.) to populate the destination datasets with the new data. Again, omit the `--date/-d` argument to ensure all records are processed.
 
 ### Automate tasks with Airflow and Docker
 
@@ -357,12 +379,11 @@ See [atd-airflow](https://github.com/cityofaustin/atd-airflow) for examples of h
 
 If you add a Python package dependency to any service, adding that package to `requirements.txt` is enough to ensure that the next Docker build will include that package in the environment. Our Airflow instance refreshes its DAG's Docker containers every 5 minutes, so it will always be running the latest environment.
 
-
 ## Troubleshooting
 
 ### ArcGIS Online (AGOL)
 
-Depending on the presence of the `--date` argument, `records_to_agol.py` uses two different approaches to delete AGOL records. 
+Depending on the presence of the `--date` argument, `records_to_agol.py` uses two different approaches to delete AGOL records.
 
 When the `--date` argument is present, the script simulates an upsert by deleting from AGOL any records present in the current payload. This is done with a `WHERE` clause:
 
@@ -376,7 +397,7 @@ Alternatively, when no `--date` argument is present, all records in the destinat
 WHERE 1=1
 ```
 
-When troubleshooting an obscure AGOL error, it's often a good starting point to manually run `records_to_agol.py` without the `--date` argument, as this can seemingly clear up any underlying versioning/indexing issues within AGOL's internal state. 
+When troubleshooting an obscure AGOL error, it's often a good starting point to manually run `records_to_agol.py` without the `--date` argument, as this can seemingly clear up any underlying versioning/indexing issues within AGOL's internal state.
 
 One such error message looks like this:
 
