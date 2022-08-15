@@ -23,11 +23,31 @@ def handle_floating_timestamps(records, floating_timestamp_fields):
     return records
 
 
-def bools_to_strings(records):
+def get_boolean_columns(client_metadata):
+    return [
+        col["fieldName"]
+        for col in client_metadata["columns"]
+        if col["dataTypeName"] == "checkbox"
+    ]
+
+
+def bools_to_strings(records, boolean_columns):
+    """Convert booleans from knack to strings
+    Some Socrata datasets have been been created with type mistmatch b/t Knack and Socrata,
+    where a boolean field in Knack is configured as a text field in Socrata.
+    This function converts a Knack boolean to a string.
+
+    Args:
+        records (list): a list of record dictionaries
+        boolean_columns (_type_): the boolean columns in Socrata
+    
+    Returns:
+        None: records are updated in-place
+    """
     for record in records:
-        for k, v in record.items():
-            if isinstance(v, bool):
-                record[k] = str(v)
+        for key, val in record.items():
+            if isinstance(val, bool) and key not in boolean_columns:
+                record[key] = str(val)
 
 
 def handle_arrays(records):
@@ -152,7 +172,8 @@ def main():
     payload = [utils.shared.format_keys(record) for record in payload]
     # remove unknown fields first to reduce extra processing when doing subsequent transforms
     remove_unknown_fields(payload, metadata_socrata)
-    bools_to_strings(payload)
+    boolean_columns = get_boolean_columns(metadata_socrata)
+    bools_to_strings(payload, boolean_columns)
     handle_arrays(payload)
     floating_timestamp_fields = utils.socrata.get_floating_timestamp_fields(
         resource_id, metadata_socrata
