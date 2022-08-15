@@ -27,13 +27,14 @@ def get_boolean_columns(client_metadata):
     return [
         col["fieldName"]
         for col in client_metadata["columns"]
+        # boolean fields in socrata are type "checkbox"
         if col["dataTypeName"] == "checkbox"
     ]
 
 
 def bools_to_strings(records, boolean_columns):
     """Convert booleans from knack to strings
-    Some Socrata datasets have been been created with type mistmatch b/t Knack and Socrata,
+    Some Socrata datasets have been been created with type mismatch b/t Knack and Socrata,
     where a boolean field in Knack is configured as a text field in Socrata.
     This function converts a Knack boolean to a string.
 
