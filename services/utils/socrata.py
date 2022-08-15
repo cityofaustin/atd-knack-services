@@ -23,7 +23,9 @@ def get_floating_timestamp_fields(resource_id, metadata):
     ]
 
 
-def append_current_timestamp(records, key, tzinfo="US/Central", format_="YYYY-MM-DDTHH:mm:ss"):
+def append_current_timestamp(
+    records, key, tzinfo="US/Central", format_="YYYY-MM-DDTHH:mm:ss"
+):
     """Appends an ISO-8601 timestamp to each record.
 
     The timestamp is created in US/Central time without the tz string. This
@@ -32,7 +34,7 @@ def append_current_timestamp(records, key, tzinfo="US/Central", format_="YYYY-MM
     Args:
         records (list): A list of record dicts
         key (str): The key which will be added to each record dict with the timestamp value
-        format_ (str): The arrow formatting token string 
+        format_ (str): The arrow formatting token string
 
     Returns:
         None: the records are updated in place.
