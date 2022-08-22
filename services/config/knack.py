@@ -166,6 +166,16 @@ CONFIG = {
             "location_field_id": None,
             "socrata_resource_id": "nyhn-669r",
         },
+        "view_3628": {
+            "description": "Contract work orders",
+            "scene": "scene_1249",
+            "modified_date_field": "field_3774",
+            "service_id": "7eb2da1d8e6c4f79b368d8e295dec969",
+            "layer_id": 0,
+            "item_type": "layer",
+            "location_field_id": None,
+            #"socrata_resource_id": "nyhn-669r",
+        },
         "view_3100": {
             "description": "Markings jobs",
             "scene": "scene_1249",
