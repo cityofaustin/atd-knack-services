@@ -233,7 +233,7 @@ CONFIG = {
         "view_3127": {
             "description": "Signs work order attachments",
             "scene": "scene_1249",
-            "modified_date_field": "object_153",
+            "modified_date_field": "field_2568",
             "service_id": "93e29b23c39b4110ab0bbefde79b4063",
             "item_type": "table",
             "layer_id": 0,
