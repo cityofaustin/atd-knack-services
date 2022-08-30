@@ -45,7 +45,7 @@ CONFIG = {
             "modified_date_field": "field_1229",
             "socrata_resource_id": "hcaw-evi2",
             "append_timestamps_socrata": {"key": "published_date"},
-            "no_replace_socrata": True
+            "no_replace_socrata": True,
         },
         "view_2908": {
             "description": "Metrobike kiosks",
@@ -165,6 +165,16 @@ CONFIG = {
             "item_type": "layer",
             "location_field_id": None,
             "socrata_resource_id": "nyhn-669r",
+        },
+        "view_3628": {
+            "description": "Contract work orders",
+            "scene": "scene_1249",
+            "modified_date_field": "field_3774",
+            "service_id": "7eb2da1d8e6c4f79b368d8e295dec969",
+            "layer_id": 0,
+            "item_type": "layer",
+            "location_field_id": None,
+            "socrata_resource_id": "5dex-63ir",
         },
         "view_3100": {
             "description": "Markings jobs",

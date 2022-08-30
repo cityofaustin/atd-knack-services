@@ -31,15 +31,22 @@ PGREST_JWT = os.getenv("PGREST_JWT")
 PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 CHUNK_SIZE = 500
 CONFIG = {
-    "service_id": "a9f5be763a67442a98f684935d15729b",
     "layers": {
         "markings_jobs": {
+            "service_id": "a9f5be763a67442a98f684935d15729b",
             "id": 0,
             "segment_id_field": "STREET_SEGMENT_IDS",
             "modified_date_field": "MODIFIED_DATE",
         },
         "markings_work_orders": {
+            "service_id": "a9f5be763a67442a98f684935d15729b",
             "id": 1,
+            "segment_id_field": "STREET_SEGMENT_IDS",
+            "modified_date_field": "MODIFIED_DATE",
+        },
+        "markings_contractor_work_orders": {
+            "service_id": "7eb2da1d8e6c4f79b368d8e295dec969",
+            "id": 0,
             "segment_id_field": "STREET_SEGMENT_IDS",
             "modified_date_field": "MODIFIED_DATE",
         },
@@ -54,7 +61,7 @@ def chunks(lst, n):
 
 
 def parse_segment_strings(segments_string):
-    """ Parsing something like this:
+    """Parsing something like this:
     'PAYTON GIN RD (2039939),  COLLINFIELD DR (2010835),  COOPER DR (2010862)'
     Which is indeed subject to change if someone were to modifiy this text formula
     field in Knack."""
@@ -82,8 +89,8 @@ def get_segment_features(segment_ids, gis):
 
 
 def build_geometry(segment_ids, segment_features, match_field="SEGMENT_ID"):
-    """ Finds and merges all segment geometry paths for the given list of segment IDs
-    
+    """Finds and merges all segment geometry paths for the given list of segment IDs
+
     Of interest: https://developers.arcgis.com/documentation/common-data-types/geometry-objects.htm  # noqa: E501
     """
     paths = []
@@ -92,6 +99,7 @@ def build_geometry(segment_ids, segment_features, match_field="SEGMENT_ID"):
             segment_id_current = feature.attributes.get(match_field)
             if segment_id_current == int(segment_id):
                 paths += feature.geometry["paths"]
+                break
     if not paths:
         return None
     return {"paths": paths, "spatialReference": {"wkid": 102739, "latestWkid": 2277}}
@@ -132,7 +140,7 @@ def main():
     args = cli_args()
     layer_name = args.layer_name
     logger.info(args)
-    service_id = CONFIG["service_id"]
+    service_id = CONFIG["layers"][layer_name]["service_id"]
     layer_id = CONFIG["layers"][layer_name]["id"]
     segment_id_field = CONFIG["layers"][layer_name]["segment_id_field"]
     modified_date_field = CONFIG["layers"][layer_name]["modified_date_field"]
