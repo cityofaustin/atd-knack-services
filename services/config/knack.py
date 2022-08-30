@@ -45,7 +45,7 @@ CONFIG = {
             "modified_date_field": "field_1229",
             "socrata_resource_id": "hcaw-evi2",
             "append_timestamps_socrata": {"key": "published_date"},
-            "no_replace_socrata": True
+            "no_replace_socrata": True,
         },
         "view_2908": {
             "description": "Metrobike kiosks",
@@ -153,6 +153,13 @@ CONFIG = {
             "service_id": "ebde70df086942c286dcf9f3f3449f2f",
             "layer_id": 0,
             "item_type": "layer",
+        },
+        "view_3488": {
+            "description": "Signal studies for signal evaluations map",
+            "scene": "scene_1233",
+            "modified_date_field": "field_3671",
+            "location_field_id": "field_182",
+            "socrata_resource_id": "h4cy-hpgs",
         },
     },
     "signs-markings": {
