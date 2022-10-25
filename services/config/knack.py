@@ -154,6 +154,13 @@ CONFIG = {
             "layer_id": 0,
             "item_type": "layer",
         },
+        "view_3488": {
+            "description": "Signal studies for signal evaluations map",
+            "scene": "scene_1233",
+            "modified_date_field": "field_3671",
+            "location_field_id": "field_182",
+            "socrata_resource_id": "h4cy-hpgs",
+        },
     },
     "signs-markings": {
         "view_3099": {
