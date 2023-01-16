@@ -310,4 +310,11 @@ CONFIG = {
             },
         },
     },
+    "smart-mobility": {
+        "view_396": {
+            "description": "Artbox Signal Locations",
+            "scene": "scene_146",
+            "modified_date_field": "field_391",
+        }
+    },
 }
