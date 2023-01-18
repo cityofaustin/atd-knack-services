@@ -17,6 +17,20 @@ def handle_connection(value):
         identifiers = [conn["identifier"] for conn in value]
         return ", ".join(str(v) for v in identifiers)
 
+def handle_multiple_choice(value):
+    """
+    Return a string of comma-separated values from a multi-choice field type
+
+    Input:
+        value (list)
+    Output:
+        string of comma-separated values of input list
+    """
+    if not value:
+        return None
+    if len(value) == 1:
+        return str(value[0])
+    return ", ".join(str(v) for v in value)
 
 def handle_strip(value):
     try:
@@ -62,8 +76,9 @@ FIELD_MAPS = {
             },
             # Council district
             {
-                "src": "field_1256",
+                "src": "field_189_raw",
                 "smart-mobility": "field_385",
+                "handler": handle_multiple_choice,
             },
             # Signal Name
             {
@@ -72,7 +87,7 @@ FIELD_MAPS = {
             },
             # Signal Engineer Area
             {
-                "src": "field_1857",
+                "src": "field_188_raw",
                 "smart-mobility": "field_387",
             },
         ],
