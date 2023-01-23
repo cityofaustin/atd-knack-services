@@ -15,6 +15,14 @@ CONFIG = {
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
             "item_type": "layer",
             "layer_id": 0,
+            "dest_apps": {
+                "smart-mobility": {
+                    "container": "view_396",
+                    "description": "Artbox Locations",
+                    "modified_date_field": "field_391",
+                    "object": "object_26",
+                },
+            },
         },
         "view_395": {
             "description": "CCTV Cameras",
@@ -301,5 +309,12 @@ CONFIG = {
                 },
             },
         },
+    },
+    "smart-mobility": {
+        "view_396": {
+            "description": "Artbox Signal Locations",
+            "scene": "scene_146",
+            "modified_date_field": "field_391",
+        }
     },
 }

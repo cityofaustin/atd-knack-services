@@ -145,7 +145,10 @@ def main():
     if not todos:
         return
 
+    count = 0
     for record in todos:
+        if count % 10 == 0:
+            logger.info(f"Uploading record {count} of {len(todos)}")
         method = "create" if not record.get("id") else "update"
         knackpy.api.record(
             app_id=APP_ID_DEST,
@@ -154,6 +157,7 @@ def main():
             method=method,
             data=record,
         )
+        count += 1
 
 
 if __name__ == "__main__":
