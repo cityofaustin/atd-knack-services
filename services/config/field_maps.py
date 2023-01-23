@@ -17,6 +17,7 @@ def handle_connection(value):
         identifiers = [conn["identifier"] for conn in value]
         return ", ".join(str(v) for v in identifiers)
 
+
 def handle_multiple_choice(value):
     """
     Return a string of comma-separated values from a multi-choice field type
@@ -31,6 +32,7 @@ def handle_multiple_choice(value):
     if len(value) == 1:
         return str(value[0])
     return ", ".join(str(v) for v in value)
+
 
 def handle_strip(value):
     try:
@@ -68,11 +70,6 @@ FIELD_MAPS = {
             {
                 "src": "field_209",
                 "smart-mobility": "field_381",
-            },
-            # WEB_URL_GENERATOR_PM
-            {
-                "src": "field_3399",
-                "smart-mobility": "field_384",
             },
             # Council district
             {
