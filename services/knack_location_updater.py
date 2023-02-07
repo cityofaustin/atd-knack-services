@@ -45,13 +45,13 @@ def create_login_token():
     params = {
         "username": AGOL_USER,
         "password": AGOL_PASS,
-        "expiration": 60 * 4, # In minutes
-        'f': 'json',
+        "expiration": 60 * 4,  # In minutes
+        "f": "json",
         "referer": f"https://{organizationName}.maps.arcgis.com/",
     }
     res = requests.post(url=login_url, data=params)
 
-    return res.json()['token']
+    return res.json()["token"]
 
 
 def point_in_poly(service_name, layer_id, params):
