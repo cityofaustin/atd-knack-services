@@ -1,85 +1,58 @@
 """ Fetch Knack records from Postgres(t) and update the location information """
 
+import argparse
+import logging
 import os
 import requests
 
+import arrow
 from config.knack import CONFIG
+from config.locations import LAYER_CONFIG
 import utils
 import knackpy
-
-
-# Future args
-container = "view_1201"
-app_name = "data-tracker"
-object = "object_11"
-
-# Future config
-layers_cfg =  [
-        # layer config for interacting with ArcGIS Online
-        # see: http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#//02r3000000p1000000
-        {
-            "service_name": "BOUNDARIES_single_member_districts",
-            "outFields": "COUNCIL_DISTRICT",
-            "updateFields": "field_189", # COUNCIL_DISTRICT
-            "layer_id": 0,
-            "distance": 33, # NOTE: This is in meters.
-            "units": "esriSRUnit_Foot", # NOTE: This is not actually in feet. It's in meters.
-            #  how to handle query that returns multiple intersection features
-            "handle_features": "merge_all",
-            "apply_format": False,
-        },
-        {
-            "service_name": "BOUNDARIES_jurisdictions",
-            #  will attempt secondary service if no results at primary
-            "service_name_secondary": "BOUNDARIES_jurisdictions_planning",
-            "outFields": "JURISDICTION_LABEL",
-            "updateFields": "field_190", # JURISDICTION_LABEL
-            "layer_id": 0,
-            "handle_features": "use_first",
-            "apply_format": False,
-        },
-        {
-            "service_name": "TRANSPORTATION_signal_engineer_areas",
-            "outFields": "SIGNAL_ENG_AREA",
-            "updateFields": "field_188", # SIGNAL_ENG_AREA
-            "layer_id": 0,
-            "handle_features": "use_first",
-            "apply_format": False,
-        },
-        {
-            "service_name": "EXTERNAL_cmta_stops",
-            "outFields": "STOP_ID",
-            "updateFields": "field_2040", # BUS_STOPS
-            "layer_id": 0,
-            "distance": 107, # NOTE: This is in meters.
-            "units": "esriSRUnit_Foot", # NOTE: This is not actually in feet. It's in meters.
-            "handle_features": "merge_all",
-            "apply_format": True,
-        },
-]
 
 APP_ID = os.getenv("KNACK_APP_ID")
 API_KEY = os.getenv("KNACK_API_KEY")
 PGREST_JWT = os.getenv("PGREST_JWT")
 PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
+AGOL_USER = os.getenv("AGOL_USER")
+AGOL_PASS = os.getenv("AGOL_PASS")
+
+
 def format_filter_date(date_from_args):
     return "1970-01-01" if not date_from_args else arrow.get(date_from_args).isoformat()
 
-def format_stringify_list(input_list):
-    """
-    Function to format features when merging multiple feature attributes
 
-    Parameters
-    ----------
-    input_list : TYPE
-        Description
-
-    Returns
-    -------
-    TYPE
-        Description
+def get_output_keys():
     """
-    return ", ".join(str(l) for l in input_list)
+    Returns the subset of keys that we will send to knack from.
+    Is the ID key + any columns that are updated by the location updater
+    """
+    output_keys = []
+    for layer in LAYER_CONFIG:
+        output_keys.append(layer["updateFields"])
+    output_keys.append("id")
+    return output_keys
+
+
+def create_login_token():
+    """
+    Returns an auth token from AGOL, to hopefully reduce the risk of rate-limiting
+    h/t: https://community.esri.com/t5/arcgis-rest-api-questions/using-python-to-generate-access-token-for-an/td-p/1133618
+    """
+    organizationName = "austin"
+    login_url = f"https://{organizationName}.maps.arcgis.com/sharing/generateToken"
+    params = {
+        "username": AGOL_USER,
+        "password": AGOL_PASS,
+        "expiration": 60 * 4, # In minutes
+        'f': 'json',
+        "referer": f"https://{organizationName}.maps.arcgis.com/",
+    }
+    res = requests.post(url=login_url, data=params)
+
+    return res.json()['token']
+
 
 def point_in_poly(service_name, layer_id, params):
     """
@@ -96,6 +69,25 @@ def point_in_poly(service_name, layer_id, params):
     res.raise_for_status()
 
     return res.json()
+
+
+def format_stringify_list(input_list):
+    """
+    Function to format features when merging multiple feature attributes
+
+    Parameters
+    ----------
+    input_list : TYPE
+        Description
+
+    Returns
+    -------
+    TYPE
+        Description
+    """
+    input_list.sort()
+    return ", ".join(str(l) for l in input_list)
+
 
 def get_params(layer_config):
     """base params for AGOL query request
@@ -122,6 +114,7 @@ def get_params(layer_config):
         "geometryType": "esriGeometryPoint",
         "distance": None,
         "units": None,
+        "token": None,
     }
 
     for param in layer_config:
@@ -130,10 +123,30 @@ def get_params(layer_config):
 
     return params
 
-filter_iso_date_str = format_filter_date(None)
 
-client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
-data = client_postgrest.select(
+def local_timestamp():
+    """
+    Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
+    Used to set datetimes when writing Knack records, because Knack assumes input
+    time values are in local time. Note that when extracing records from Knack,
+    timestamps are standard unix timestamps in millesconds (timezone=UTC).
+    """
+    return arrow.now().replace(tzinfo="UTC").timestamp() * 1000
+
+
+def main(args):
+    # Parse Arguments
+    app_name = args.app_name
+    container = args.container
+    object = f"object_{args.object}"
+    filter_iso_date_str = format_filter_date(args.date)
+    logger.info(args)
+
+    token = create_login_token()
+
+    # Getting location data from Postgres(t)
+    client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
+    data = client_postgrest.select(
         "knack",
         params={
             "select": "record",
@@ -144,97 +157,155 @@ data = client_postgrest.select(
         order_by="record_id",
     )
 
-loc_field = CONFIG[app_name][container]["location_field_id"]
+    loc_field = CONFIG[app_name][container]["location_field_id"]
+    modified_date_field = CONFIG[app_name][container]["modified_date_field"]
+    update_processed_field = CONFIG[app_name][container]["update_processed_field"]
+    knack_data = [r["record"] for r in data]
+    output_keys = get_output_keys()
+    unmatched_locations = []
 
-knack_data = [r["record"] for r in data]
+    for record in knack_data:
+        if record[loc_field]:  # some locations do not have a location field?
+            point = [
+                record[f"{loc_field}_raw"]["longitude"],
+                record[f"{loc_field}_raw"]["latitude"],
+            ]
 
-a = []
-for i in knack_data:
-    if i['field_732'] == "LOC16-000265" or i['field_732'] == "LOC16-002630":
-        a.append(i)
-knack_data = a
+            changed = False
+            for layer in LAYER_CONFIG:
+                layer["geometry"] = point
+                layer["token"] = token
+                params = get_params(layer)
+                try:
+                    res = point_in_poly(
+                        layer["service_name"], layer["layer_id"], params
+                    )
+                    if not res["features"] and "service_name_secondary" in layer:
+                        # Some layers have a backup secondary layer to check
+                        res = point_in_poly(
+                            layer["service_name_secondary"], layer["layer_id"], params
+                        )
+                    if res.get("error"):
+                        raise Exception(str(res))
+                    if not res["features"]:
+                        if (
+                            layer["handle_features"] == "use_first"
+                            or layer["apply_format"]
+                        ):
+                            data = ""
+                            if record[layer["updateFields"]] != data:
+                                logger.info(
+                                    f"No features found for ID:{record['id']} was {record[layer['updateFields']]}"
+                                )
+                                record[layer["updateFields"]] == data
+                                changed = True
+                        elif layer["handle_features"] == "merge_all":
+                            data = []
+                            if record[layer["updateFields"]] != data:
+                                record[layer["updateFields"]] == data
+                                changed = True
+                        continue
+                except Exception as e:
+                    logger.info(f"Error handling location ID:{record['id']}")
+                    unmatched_locations.append(record)
+                    continue
 
-updated_records = []
-unmatched_locations = []
-for record in knack_data:
-    point = [record[f"{loc_field}_raw"]["longitude"], record[f"{loc_field}_raw"]["latitude"]]
+                if layer["handle_features"] == "use_first":
+                    #  use first feature in results and join feature data to location record
+                    feature = res["features"][0]
+                    data = str(feature["attributes"][layer["outFields"]]).strip()
 
-    for layer in layers_cfg:
-        layer["geometry"] = point
-        params = get_params(layer)
-
-        try:
-            res = point_in_poly(layer['service_name'], layer['layer_id'], params)
-            if res.get("error"):
-                raise Exception(str(res))
-            if not res['features']:
-                if layer["handle_features"] == "use_first" or layer["apply_format"]:
-                    data = ""
                     if record[layer["updateFields"]] != data:
-                        print(f"No features found for location ID:{record['field_732']} was {record[layer['updateFields']]}")
-                        record[layer["updateFields"]] == data
-                        updated_records.append(record)
-                if layer["handle_features"] == "merge_all":
+                        logger.info(
+                            f"Change Detected for ID:{record['id']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}"
+                        )
+                        record[layer["updateFields"]] = str(
+                            feature["attributes"][layer["outFields"]]
+                        )
+                        changed = True
+
+                elif layer["handle_features"] == "merge_all":
+                    #  concatenate feature attributes from each feature and join to record
+                    features = res["features"]
+
                     data = []
+                    for feature in features:
+                        data.append(
+                            str(feature["attributes"][layer["outFields"]]).strip()
+                        )
+
+                    if layer["apply_format"]:
+                        data = format_stringify_list(data)
+                    else:
+                        record[layer["updateFields"]] = record[
+                            layer["updateFields"]
+                        ].split(",")
+                        record[layer["updateFields"]] = [
+                            item.strip() for item in record[layer["updateFields"]]
+                        ]
+
                     if record[layer["updateFields"]] != data:
-                        record[layer["updateFields"]] == data
-                        updated_records.append(record)
-                continue
-        except Exception as e:
-            print(f"Error handling location ID:{record['field_732']}")
-            unmatched_locations.append(record)
-            continue
+                        logger.info(
+                            f"Change Detected for ID:{record['id']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}"
+                        )
+                        record[layer["updateFields"]] = data
+                        changed = True
 
-        if layer["handle_features"] == "use_first":
-            #  use first feature in results and join feature data to location record
-            feature = res['features'][0]
+        if changed:
+            # Updating a record in Knack
+            record = {key: record[key] for key in output_keys}
+            # Two additional fields for every record:
+            record[update_processed_field] = True
+            record[modified_date_field] = local_timestamp()
+            try:
+                knackpy.api.record(
+                    app_id=APP_ID,
+                    api_key=API_KEY,
+                    obj=object,
+                    method="update",
+                    data=record,
+                )
+            except Exception as e:
+                logger.info(e.response.text)
 
-            data = str(feature["attributes"][layer["outFields"]]).strip()
-            if record[layer["updateFields"]] != data:
-                print(f"Change Detected for ID:{record['field_732']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}")
-                record[layer["updateFields"]] = str(feature["attributes"][layer["outFields"]])
-                updated_records.append(record)
+    logger.info(unmatched_locations)
 
 
-        elif layer["handle_features"] == "merge_all":
-            #  concatenate feature attributes from each feature and join to record
-            features = res['features']
+if __name__ == "__main__":
+    # CLI arguments definition
+    parser = argparse.ArgumentParser()
 
-            data = []
-            for feature in features:
-                data.append(str(feature["attributes"][layer["outFields"]]).strip())
+    parser.add_argument(
+        "-a",
+        "--app-name",
+        type=str,
+        help="str: Name of the Knack App in knack.py config file",
+    )
 
-            if layer["apply_format"]:
-                data = format_stringify_list(data)
-            else:
-                record[layer["updateFields"]] = record[layer["updateFields"]].split(",")
-                record[layer["updateFields"]] = [item.strip() for item in record[layer["updateFields"]]]
+    parser.add_argument(
+        "-c",
+        "--container",
+        type=str,
+        help="str: AKA API view that was created for downloading the location data",
+    )
 
-            if record[layer["updateFields"]] != data:
-                print(f"Change Detected for ID:{record['field_732']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}")
-                record[layer["updateFields"]] = data
-                updated_records.append(record)
+    parser.add_argument(
+        "-o",
+        "--object",
+        type=int,
+        help="int: Object Number of the locations table",
+    )
 
-count = 0
+    parser.add_argument(
+        "-d",
+        "--date",
+        type=str,
+        required=False,
+        help="An ISO 8601-compliant date string which will be used to query records",
+    )
 
-output_keys = []
-for layer in layers_cfg:
-    output_keys.append(layer['updateFields'])
-output_keys.append("id")
+    args = parser.parse_args()
 
-for rec in updated_records:
-    rec = {key: rec[key] for key in output_keys}
-    rec["UPDATE_PROCESSED"] = True
-    if count % 10 == 0:
-        print(f"Uploading record {count} of {len(updated_records)}")
-    try:
-        knackpy.api.record(
-        app_id=APP_ID,
-        api_key=API_KEY,
-        obj=object,
-        method="update",
-        data=record,
-        )
-    except Exception as e:
-        print(e.response.text)
-    count += 1
+    logger = utils.logging.getLogger(__file__)
+
+    main(args)

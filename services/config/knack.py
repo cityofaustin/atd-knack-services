@@ -134,6 +134,7 @@ CONFIG = {
             "modified_date_field": "field_508",
             "location_field_id": "field_182",
             "service_id": "66f4b5b0339d4275b64f265dd59727e5",
+            "update_processed_field":"field_1357", # Needed for location_updater
             "layer_id": 0,
             "item_type": "layer",
         },
