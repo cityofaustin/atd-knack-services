@@ -15,8 +15,8 @@ APP_ID = os.getenv("KNACK_APP_ID")
 API_KEY = os.getenv("KNACK_API_KEY")
 PGREST_JWT = os.getenv("PGREST_JWT")
 PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
-AGOL_USER = os.getenv("AGOL_USER")
-AGOL_PASS = os.getenv("AGOL_PASS")
+AGOL_USER = os.getenv("AGOL_USERNAME")
+AGOL_PASS = os.getenv("AGOL_PASSWORD")
 
 
 def format_filter_date(date_from_args):
@@ -131,14 +131,13 @@ def local_timestamp():
     time values are in local time. Note that when extracing records from Knack,
     timestamps are standard unix timestamps in millesconds (timezone=UTC).
     """
-    return arrow.now().replace(tzinfo="UTC").timestamp() * 1000
+    return arrow.now().replace(tzinfo="UTC").timestamp * 1000
 
 
 def main(args):
     # Parse Arguments
     app_name = args.app_name
     container = args.container
-    object = f"object_{args.object}"
     filter_iso_date_str = format_filter_date(args.date)
     logger.info(args)
 
@@ -149,7 +148,7 @@ def main(args):
     data = client_postgrest.select(
         "knack",
         params={
-            "select": "record",
+            "select": "record, updated_at",
             "app_id": f"eq.{APP_ID}",
             "container_id": f"eq.{container}",
             "updated_at": f"gte.{filter_iso_date_str}",
@@ -157,6 +156,7 @@ def main(args):
         order_by="record_id",
     )
 
+    object = CONFIG[app_name][container]["object"]
     loc_field = CONFIG[app_name][container]["location_field_id"]
     modified_date_field = CONFIG[app_name][container]["modified_date_field"]
     update_processed_field = CONFIG[app_name][container]["update_processed_field"]
@@ -287,13 +287,6 @@ if __name__ == "__main__":
         "--container",
         type=str,
         help="str: AKA API view that was created for downloading the location data",
-    )
-
-    parser.add_argument(
-        "-o",
-        "--object",
-        type=int,
-        help="int: Object Number of the locations table",
     )
 
     parser.add_argument(
