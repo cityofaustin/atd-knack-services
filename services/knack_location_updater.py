@@ -240,7 +240,7 @@ def local_timestamp():
     time values are in local time. Note that when extracing records from Knack,
     timestamps are standard unix timestamps in millesconds (timezone=UTC).
     """
-    return arrow.now().replace(tzinfo="UTC").timestamp() * 1000
+    return arrow.now().replace(tzinfo="UTC").timestamp * 1000
 
 
 def main(args):
