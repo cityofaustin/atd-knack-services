@@ -89,7 +89,7 @@ def format_stringify_list(input_list):
     return ", ".join(str(l) for l in input_list)
 
 
-def get_params(layer_config):
+def get_params(layer_config, point, token):
     """base params for AGOL query request
 
     Parameters
@@ -114,7 +114,8 @@ def get_params(layer_config):
         "geometryType": "esriGeometryPoint",
         "distance": None,
         "units": None,
-        "token": None,
+        "token": token,
+        "geometry": point
     }
 
     for param in layer_config:
@@ -122,6 +123,114 @@ def get_params(layer_config):
             params[param] = layer_config[param]
 
     return params
+
+def handle_no_features(changed, layer, record):
+    """
+    Handling the case where we have no features returned from AGOL for record.
+
+    Parameters
+    ----------
+    changed: bool
+        Flag that tells us that we changed something in this record
+    layer : dict
+        The config information of the layer queried in AGOl.
+    record: dict
+        The knack record we are potentially editing.
+
+    Returns
+    -------
+    record: dict
+        Edited knack record
+    changed: bool
+        Flag that tells us that we changed something in this record
+
+    """
+    if (
+        layer["handle_features"] == "use_first"
+        or layer["apply_format"]
+    ):
+        data = ""
+        if record[layer["updateFields"]] != data:
+            logger.info(
+                f"No features found for ID:{record['id']} was {record[layer['updateFields']]}"
+            )
+            record[layer["updateFields"]] = data
+            changed = True
+    elif layer["handle_features"] == "merge_all":
+        data = []
+        if record[layer["updateFields"]] != data:
+            record[layer["updateFields"]] = data
+            changed = True
+
+    return record, changed
+
+def handle_features(changed, layer, record, res):
+    """
+    Handling the case where have features returned from AGOl
+
+    Parameters
+    ----------
+    changed: bool
+        Flag that tells us that we changed something in this record
+    layer : dict
+        The config information of the layer queried in AGOl.
+    record: dict
+        The knack record we are potentially editing.
+    res: dict
+        The response from the AGOL endpoint
+
+    Returns
+    -------
+    record: dict
+        Edited knack record
+    changed: bool
+        Flag that tells us that we changed something in this record
+    """
+
+    # Case for config where we only use one feature
+    if layer["handle_features"] == "use_first":
+        #  use first feature in results and join feature data to location record
+        feature = res["features"][0]
+        data = str(feature["attributes"][layer["outFields"]]).strip()
+
+        if record[layer["updateFields"]] != data:
+            logger.info(
+                f"Change Detected for ID:{record['id']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}"
+            )
+            record[layer["updateFields"]] = str(
+                feature["attributes"][layer["outFields"]]
+            )
+            changed = True
+    # Case where we use all returned features
+    elif layer["handle_features"] == "merge_all":
+        #  concatenate feature attributes from each feature and join to record
+        features = res["features"]
+
+        data = []
+        for feature in features:
+            data.append(
+                str(feature["attributes"][layer["outFields"]]).strip()
+            )
+
+        if layer["apply_format"]:
+            data = format_stringify_list(data)
+        else:
+            record[layer["updateFields"]] = record[
+                layer["updateFields"]
+            ].split(",")
+            record[layer["updateFields"]] = [
+                item.strip() for item in record[layer["updateFields"]]
+            ]
+
+        if record[layer["updateFields"]] != data:
+            logger.info(
+                f"Change Detected for ID:{record['id']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}"
+            )
+            record[layer["updateFields"]] = data
+            changed = True
+
+    return record, changed
+
 
 
 def local_timestamp():
@@ -131,7 +240,7 @@ def local_timestamp():
     time values are in local time. Note that when extracing records from Knack,
     timestamps are standard unix timestamps in millesconds (timezone=UTC).
     """
-    return arrow.now().replace(tzinfo="UTC").timestamp * 1000
+    return arrow.now().replace(tzinfo="UTC").timestamp() * 1000
 
 
 def main(args):
@@ -165,17 +274,14 @@ def main(args):
     unmatched_locations = []
 
     for record in knack_data:
-        if record[loc_field]:  # some locations do not have a location field?
+        if record[loc_field]:  # ignore records that have a null location record
             point = [
                 record[f"{loc_field}_raw"]["longitude"],
                 record[f"{loc_field}_raw"]["latitude"],
             ]
-
             changed = False
             for layer in LAYER_CONFIG:
-                layer["geometry"] = point
-                layer["token"] = token
-                params = get_params(layer)
+                params = get_params(layer, point, token)
                 try:
                     res = point_in_poly(
                         layer["service_name"], layer["layer_id"], params
@@ -188,69 +294,16 @@ def main(args):
                     if res.get("error"):
                         raise Exception(str(res))
                     if not res["features"]:
-                        if (
-                            layer["handle_features"] == "use_first"
-                            or layer["apply_format"]
-                        ):
-                            data = ""
-                            if record[layer["updateFields"]] != data:
-                                logger.info(
-                                    f"No features found for ID:{record['id']} was {record[layer['updateFields']]}"
-                                )
-                                record[layer["updateFields"]] == data
-                                changed = True
-                        elif layer["handle_features"] == "merge_all":
-                            data = []
-                            if record[layer["updateFields"]] != data:
-                                record[layer["updateFields"]] == data
-                                changed = True
-                        continue
+                        # Case 1: we have no features found for our record
+                        record, changed = handle_no_features(changed, layer, record)
+                    else:
+                        # Case 2: We did indeed find features for our record
+                        record, changed = handle_features(changed, layer, record, res)
                 except Exception as e:
                     logger.info(f"Error handling location ID:{record['id']}")
+                    logger.info(e)
                     unmatched_locations.append(record)
                     continue
-
-                if layer["handle_features"] == "use_first":
-                    #  use first feature in results and join feature data to location record
-                    feature = res["features"][0]
-                    data = str(feature["attributes"][layer["outFields"]]).strip()
-
-                    if record[layer["updateFields"]] != data:
-                        logger.info(
-                            f"Change Detected for ID:{record['id']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}"
-                        )
-                        record[layer["updateFields"]] = str(
-                            feature["attributes"][layer["outFields"]]
-                        )
-                        changed = True
-
-                elif layer["handle_features"] == "merge_all":
-                    #  concatenate feature attributes from each feature and join to record
-                    features = res["features"]
-
-                    data = []
-                    for feature in features:
-                        data.append(
-                            str(feature["attributes"][layer["outFields"]]).strip()
-                        )
-
-                    if layer["apply_format"]:
-                        data = format_stringify_list(data)
-                    else:
-                        record[layer["updateFields"]] = record[
-                            layer["updateFields"]
-                        ].split(",")
-                        record[layer["updateFields"]] = [
-                            item.strip() for item in record[layer["updateFields"]]
-                        ]
-
-                    if record[layer["updateFields"]] != data:
-                        logger.info(
-                            f"Change Detected for ID:{record['id']}:{layer['outFields']} from: {record[layer['updateFields']]} to {data}"
-                        )
-                        record[layer["updateFields"]] = data
-                        changed = True
-
         if changed:
             # Updating a record in Knack
             record = {key: record[key] for key in output_keys}
