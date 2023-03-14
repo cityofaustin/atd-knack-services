@@ -5,6 +5,7 @@ from multiprocessing.dummy import Pool
 import os
 
 import knackpy
+from pypgrest import Postgrest
 
 from config.knack import CONFIG, APP_TIMEZONE
 import utils
@@ -47,7 +48,7 @@ def chunk_payload(client, data, chunk_size):
 
 
 def upsert_wrapper(data):
-    return data["client"].upsert("knack", data["payload"])
+    return data["client"].upsert(resource="knack", data=data["payload"])
 
 
 def main():
@@ -88,12 +89,12 @@ def main():
 
     payload = build_payload(records, APP_ID, container)
 
-    client = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
+    client = Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
 
     if not args.date:
         # if no date is provided, we do a full a replace of the data
         client.delete(
-            "knack",
+            resource="knack",
             params={"container_id": f"eq.{container}", "app_id": f"eq.{APP_ID}"},
         )
 

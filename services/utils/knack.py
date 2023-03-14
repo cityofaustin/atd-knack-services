@@ -1,6 +1,27 @@
 import arrow
 
 
+def get_metadata(client, app_id):
+    """Download knack metadata from postgrest. Need this in order to format Knack record values
+        with Knackpy.
+
+    Args:
+        client (pypgrest.Postgrest): a postgrest client
+        app_id (str): the Knack app's ID
+
+    Returns:
+        dict: the app's metadata
+    """
+    results = client.select(
+        resource="knack_metadata",
+        params={"app_id": f"eq.{app_id}", "limit": 1},
+        pagination=False,
+    )
+    if results:
+        return results[0]["metadata"]
+    return None
+
+
 def socrata_formatter_location(value):
     if not value:
         return value
@@ -26,7 +47,9 @@ def socrata_formatter_multipoint(value):
     try:
         return {
             "type": "MultiPoint",
-            "coordinates": [[float(v["longitude"]), float(v["latitude"])] for v in value],
+            "coordinates": [
+                [float(v["longitude"]), float(v["latitude"])] for v in value
+            ],
         }
     except ValueError:
         return None

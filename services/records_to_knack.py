@@ -4,6 +4,7 @@ import os
 
 import arrow
 import knackpy
+from pypgrest import Postgrest
 
 from config.knack import CONFIG
 from config.field_maps import FIELD_MAPS
@@ -96,7 +97,7 @@ def main():
     config = CONFIG.get(app_name_src).get(container_src)
     container_dest = config.get("dest_apps").get(app_name_dest).get("container")
     object_dest = config.get("dest_apps").get(app_name_dest).get("object")
-    client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
+    client_postgrest = Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
     filter_iso_date_str = format_filter_date(args.date)
 
     logger.info(
@@ -104,14 +105,14 @@ def main():
     )
 
     data_src = client_postgrest.select(
-        "knack",
+        resource="knack",
         params={
             "select": "record",
             "app_id": f"eq.{APP_ID_SRC}",
             "container_id": f"eq.{container_src}",
             "updated_at": f"gte.{filter_iso_date_str}",
+            "order": "record_id"
         },
-        order_by="record_id",
     )
 
     logger.info(f"{len(data_src)} records to process")
@@ -124,13 +125,13 @@ def main():
     )
 
     data_dest = client_postgrest.select(
-        "knack",
+        resource="knack",
         params={
             "select": "record",
             "app_id": f"eq.{APP_ID_DEST}",
             "container_id": f"eq.{container_dest}",
-        },
-        order_by="record_id",
+            "order": "record_id"
+        }
     )
 
     data_src = [r["record"] for r in data_src]

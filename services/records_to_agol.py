@@ -6,6 +6,7 @@ import time
 import arcgis
 import arrow
 import knackpy
+from pypgrest import Postgrest
 
 import utils
 from config.knack import CONFIG
@@ -72,8 +73,8 @@ def main():
     layer_id = config["layer_id"]
     item_type = config["item_type"]
 
-    client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
-    metadata_knack = utils.postgrest.get_metadata(client_postgrest, APP_ID)
+    client_postgrest = Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
+    metadata_knack = utils.knack.get_metadata(client_postgrest, APP_ID)
     app = knackpy.App(app_id=APP_ID, metadata=metadata_knack)
 
     logger.info(f"Downloading records from app {APP_ID}, container {container}.")
@@ -81,14 +82,14 @@ def main():
     filter_iso_date_str = format_filter_date(args.date)
 
     data = client_postgrest.select(
-        "knack",
+        resource="knack",
         params={
             "select": "record",
             "app_id": f"eq.{APP_ID}",
             "container_id": f"eq.{container}",
             "updated_at": f"gte.{filter_iso_date_str}",
+            "order": "record_id"
         },
-        order_by="record_id",
     )
 
     logger.info(f"{len(data)} to process.")

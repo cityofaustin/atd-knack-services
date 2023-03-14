@@ -1,5 +1,7 @@
+arcgis==1.8.*
 arrow==0.15.*
 knackpy==1.0.*
+pypgrest==0.1.*
 sodapy==2.1.*
 # -- packages for test suite --
 black
