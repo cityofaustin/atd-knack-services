@@ -6,7 +6,7 @@ import os
 import requests
 
 import arrow
-from config.knack import CONFIG
+from config.knack import CONFIG, APP_TIMEZONE
 from config.locations import LAYER_CONFIG
 import utils
 import knackpy
@@ -25,7 +25,7 @@ def format_filter_date(date_from_args):
 
 def get_output_keys():
     """
-    Returns the subset of keys that we will send to knack from.
+    Returns the subset of keys that we will update in Knack.
     Is the ID key + any columns that are updated by the location updater
     """
     output_keys = []
@@ -237,10 +237,10 @@ def local_timestamp():
     """
     Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
     Used to set datetimes when writing Knack records, because Knack assumes input
-    time values are in local time. Note that when extracing records from Knack,
-    timestamps are standard unix timestamps in millesconds (timezone=UTC).
+    time values are in local time.
     """
-    return arrow.now().replace(tzinfo="UTC").timestamp * 1000
+    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp * 1000
+
 
 
 def main(args):
@@ -252,28 +252,22 @@ def main(args):
 
     token = create_login_token()
 
-    # Getting location data from Postgres(t)
-    client_postgrest = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
-    data = client_postgrest.select(
-        "knack",
-        params={
-            "select": "record, updated_at",
-            "app_id": f"eq.{APP_ID}",
-            "container_id": f"eq.{container}",
-            "updated_at": f"gte.{filter_iso_date_str}",
-        },
-        order_by="record_id",
+    # Getting location data from Knack
+    config = CONFIG[app_name][container]
+    modified_date_field = config["modified_date_field"]
+    kwargs = {"scene": config["scene"], "view": args.container}
+    filters = utils.knack.date_filter_on_or_after(
+        args.date, modified_date_field, tzinfo=APP_TIMEZONE
     )
+    data = knackpy.api.get(app_id=APP_ID, api_key=API_KEY, filters=filters, **kwargs)
 
-    object = CONFIG[app_name][container]["object"]
-    loc_field = CONFIG[app_name][container]["location_field_id"]
-    modified_date_field = CONFIG[app_name][container]["modified_date_field"]
-    update_processed_field = CONFIG[app_name][container]["update_processed_field"]
-    knack_data = [r["record"] for r in data]
+    object = config["object"]
+    loc_field = config["location_field_id"]
+    update_processed_field = config["update_processed_field"]
     output_keys = get_output_keys()
     unmatched_locations = []
 
-    for record in knack_data:
+    for record in data:
         if record[loc_field]:  # ignore records that have a null location record
             point = [
                 record[f"{loc_field}_raw"]["longitude"],
