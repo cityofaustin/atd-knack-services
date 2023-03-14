@@ -173,7 +173,7 @@ CONFIG = {
             "description": "Corridor retiming",
             "scene": "scene_1526",
             "modified_date_field": "field_4169",
-            "socrata_resource_id:": "bp5z-kciq",
+            "socrata_resource_id": "bp5z-kciq",
         }
     },
     "signs-markings": {
