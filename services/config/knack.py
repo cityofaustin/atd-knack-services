@@ -40,6 +40,17 @@ CONFIG = {
             "modified_date_field": "field_2563",
             "socrata_resource_id": "p7pt-re4k",
         },
+        "view_2362":{
+            "description": "MMC Issue Auto Assign Queue",
+            "scene":"scene_514",
+            "modified_date_field": "field_1385",
+            "object": "object_83", # Needed for sr_asset_assign
+            "assign_status_field_id": "field_2813", # Needed for sr_asset_assign
+            "asset_type_field_id": "field_1649",# Needed for sr_asset_assign
+            "connection_field_keys": {"signals": "field_1367"}, # Needed for sr_asset_assign
+            "x_field": "field_1402", # CSR_X_VALUE
+            "y_field": "field_1401", # CSR_Y_VALUE
+        },
         "view_2892": {
             "description": "MMC issues",
             "scene": "scene_514",
