@@ -115,7 +115,7 @@ def get_params(layer_config, point, token):
         "distance": None,
         "units": None,
         "token": token,
-        "geometry": point
+        "geometry": point,
     }
 
     for param in layer_config:
@@ -123,6 +123,7 @@ def get_params(layer_config, point, token):
             params[param] = layer_config[param]
 
     return params
+
 
 def handle_no_features(changed, layer, record):
     """
@@ -145,10 +146,7 @@ def handle_no_features(changed, layer, record):
         Flag that tells us that we changed something in this record
 
     """
-    if (
-        layer["handle_features"] == "use_first"
-        or layer["apply_format"]
-    ):
+    if layer["handle_features"] == "use_first" or layer["apply_format"]:
         data = ""
         if record[layer["updateFields"]] != data:
             logger.info(
@@ -163,6 +161,7 @@ def handle_no_features(changed, layer, record):
             changed = True
 
     return record, changed
+
 
 def handle_features(changed, layer, record, res):
     """
@@ -208,16 +207,12 @@ def handle_features(changed, layer, record, res):
 
         data = []
         for feature in features:
-            data.append(
-                str(feature["attributes"][layer["outFields"]]).strip()
-            )
+            data.append(str(feature["attributes"][layer["outFields"]]).strip())
 
         if layer["apply_format"]:
             data = format_stringify_list(data)
         else:
-            record[layer["updateFields"]] = record[
-                layer["updateFields"]
-            ].split(",")
+            record[layer["updateFields"]] = record[layer["updateFields"]].split(",")
             record[layer["updateFields"]] = [
                 item.strip() for item in record[layer["updateFields"]]
             ]
@@ -232,7 +227,6 @@ def handle_features(changed, layer, record, res):
     return record, changed
 
 
-
 def local_timestamp():
     """
     Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
@@ -242,12 +236,10 @@ def local_timestamp():
     return arrow.now("US/Central").replace(tzinfo="UTC").timestamp * 1000
 
 
-
 def main(args):
     # Parse Arguments
     app_name = args.app_name
     container = args.container
-    filter_iso_date_str = format_filter_date(args.date)
     logger.info(args)
 
     token = create_login_token()

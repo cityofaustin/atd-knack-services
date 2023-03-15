@@ -333,6 +333,63 @@ FIELD_MAPS = {
 - `--app-name-dest, -dest` (`str`, required): the name of the destination Knack application
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
+### Knack maintenance: Update location fields in Knack based on AGOL layers
+
+Get point geometry for assets in Knack then update location information based on AGOL feature layers using `knack_location_updater.py`. This updates fields like `COUNCIL_DISTRICT` in Knack when there is a new location record created. 
+
+#### Configuration
+
+Two parts need to be defined in order for for this script to run successfully: Knack and AGOL.
+
+Knack definitions build off of the previously defined config in `config/knack.py`, where you need to supply the table's location field (must be created as a location data type in Knack), a boolean `update_processed_field` where the script will set this to True, and the table's object number.
+
+```python
+CONFIG =
+"data-tracker":{
+    "view_1201": {
+            "description": "Arterial Management Locations",
+            "scene": "scene_425",
+            "modified_date_field": "field_508",
+            "location_field_id": "field_182",
+            "update_processed_field":"field_1357", 
+            "object": "object_11", 
+        },
+    }
+```
+
+The AGOL layer definitions are defined at `config/locations.py` where each entry in the `LAYER_CONFIG` list refers to a layer the script query in AGOL for every record. Each layer is defined as a `service_name` and are coded to query our AGOL feature server. A `service_name_secondary` can be supplied to query if no features are found in the first layer.
+
+`outFields` is the attribute in the AGOL feature we will pull to update the knack record at `updateFields`. `handle_features` has two options:
+
+- When multiple features are returned from AGOL, `merge_all` will return a list or a stringified list separated by commas if `apply_format` is set to True.
+- `use_first` will return the first record from the list of features from AGOL.
+
+
+```python
+LAYER_CONFIG = [
+    {
+        "service_name": "BOUNDARIES_single_member_districts", 
+        "service_name_secondary": "BOUNDARIES_other_council_districts", # optional
+        "outFields": "COUNCIL_DISTRICT", # AGOL layer attribute 
+        "updateFields": "field_189",  # Knack field COUNCIL_DISTRICT
+        "layer_id": 0,
+        "distance": 33,  
+        "units": "esriSRUnit_Foot", 
+        "handle_features": "merge_all", # or use_first
+        "apply_format": False, # Will return COUNCIL_DISTRICT as a list
+    },
+]
+```
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
+  _completely replaced_.
+
+
+
 ## Utils (`/services/utils`)
 
 The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
