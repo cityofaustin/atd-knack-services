@@ -204,7 +204,7 @@ The field's display name can be freely-defined, but the field name must be `id` 
 
 If you have a conflicting field in your Knack data named "ID", you should as general best practice rename it. If you absolutely must keep your "ID" field in Knack, this column name will be translated to `_id` when publishing to Socrata, so configure your dataset accordingly.
 
-With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces with underscores and making all characters lowercase.
+With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces and dashes with underscores and making all characters lowercase.
 
 Knack container field names missing from the Socrata dataset's fields will be removed from the payload before publishing.
 
@@ -353,7 +353,7 @@ Note also that that. as a best practice, you should not use connection fields in
 
 Follow these steps to add a new column to a dataset.
 
-1. Add the new column to any destination datasets. Keep in mind that the column name in the destination dataset must match the column name in the source Knack object, except that all spaces will be replaced with underscores and all characters converted to lowercase.
+1. Add the new column to any destination datasets. Keep in mind that the column name in the destination dataset must match the column name in the source Knack object, except that all spaces and dashes will be replaced with underscores and all characters converted to lowercase.
 
 2. Add the new column to the Knack view (aka container). Doing this will break the ETL until you complete the steps that follow!
 
