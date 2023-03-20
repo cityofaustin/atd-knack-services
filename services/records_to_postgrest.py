@@ -91,7 +91,7 @@ def main():
     client = utils.postgrest.Postgrest(PGREST_ENDPOINT, token=PGREST_JWT)
 
     if not args.date:
-        # if no date is provided, we do a full a replace of the data
+        # if no date is provided, we do a full replace of the data
         client.delete(
             "knack",
             params={"container_id": f"eq.{container}", "app_id": f"eq.{APP_ID}"},

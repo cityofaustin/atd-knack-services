@@ -169,6 +169,12 @@ CONFIG = {
             "location_field_id": "field_182",
             "socrata_resource_id": "h4cy-hpgs",
         },
+        "view_3814": {
+            "description": "Corridor retiming",
+            "scene": "scene_1526",
+            "modified_date_field": "field_4169",
+            "socrata_resource_id": "bp5z-kciq",
+        }
     },
     "signs-markings": {
         "view_3099": {

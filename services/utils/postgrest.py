@@ -97,7 +97,7 @@ class Postgrest(object):
             headers (dict): Custom PostgREST headers which will be passed to the
                 request. Defaults to None.
             order_by (str): Field name to use a sort field when querying records. This
-                must be provided when pagniation=True to ensure that the DB returns
+                must be provided when pagination=True to ensure that the DB returns
                 consistent results across all pages/offsets.
             pagination (bool): If the client should make repeated requests until etiher:
                 -  the limit param (if present) is met
@@ -130,8 +130,8 @@ class Postgrest(object):
 
             if not data or len(records) >= limit or not pagination:
                 # Postgrest has a max-rows configuration setting which limits the total
-                # number of rows that can be returned from a request. when the the
-                # client specifies a limit higher than max-rows, the the max-rows # of
+                # number of rows that can be returned from a request. when the
+                # client specifies a limit higher than max-rows, the max-rows # of
                 # rows are returned
                 return records
             else:
