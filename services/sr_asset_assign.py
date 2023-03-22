@@ -96,7 +96,6 @@ def get_params(layer_config, point, token):
         "f": "json",
         "outFields": "*",
         "where": "1=1",
-        "geomtryType": "esriGeometryPoint",
         "returnGeometry": False,
         "spatialRel": "esriSpatialRelIntersects",
         "inSR": 2277,
@@ -181,7 +180,6 @@ def main(args):
         logger.info("No SRs waiting in queue to be processed, doing nothing.")
         return 0
 
-
     object_id = config["object"]
     status_field = config["assign_status_field_id"]
     connected_field = config["connection_field_keys"][args.asset]
@@ -258,6 +256,7 @@ if __name__ == "__main__":
         "-s",
         "--asset",
         type=str,
+        choices=["signals"],
         help="str: Name of the asset to search for potential matches",
     )
     args = parser.parse_args()

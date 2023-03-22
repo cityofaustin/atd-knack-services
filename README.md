@@ -13,6 +13,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
   - [Publish to Open Data Portal](#publish-records-to-the-open-data-portal)
   - [Publish to ArcGIS Online](#publish-records-to-arcgis-online)
   - [Publish to another Knack app](#publish-records-to-another-knack-app)
+  - [Knack Maintenance: 311 SR Auto Asset Assign](#knack-maintenance-311-sr-auto-asset-assign)
 - [Utils](<#utils-(`/services/utils`)>)
 - [Common Tasks](#common-tasks)
   - [Configure a Knack container](#configuring-a-knack-container)
@@ -335,7 +336,7 @@ FIELD_MAPS = {
 
 ### Knack Maintenance: 311 SR Auto Asset Assign
 
-This script pulls data from Knack in a queue of 311 SRs that are in `AUTO_ASSET_ASSIGN_STATUS` of `ready_to_process`. It then uses a supplied `asset` argument and AGOL layer configuration to find the asset(s) nearby the SR (`CSR_Y_VALUE`, `CSR_X_VALUE`). 
+This script pulls data from Knack in a queue of 311 SRs that are in `AUTO_ASSET_ASSIGN_STATUS` of `ready_to_process`. It then uses a supplied `asset` argument and AGOL layer configuration to find the asset(s) nearby the SR (`CSR_Y_VALUE`, `CSR_X_VALUE`). It should be noted that this script currently only assigns signal asset IDs to CSRs. 
 
 - If none are found, we just update the `AUTO_ASSET_ASSIGN_STATUS` to `no_asset_found`. `ASSET_TYPE` and the connection field for our asset are left blank.
 - If multiple assets are found we do nothing. 
