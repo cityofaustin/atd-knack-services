@@ -107,7 +107,6 @@ def get_params(layer_config, point, token):
         "outFields": "*",
         "where": "1=1",
         "geometry": None,
-        "geomtryType": "esriGeometryPoint",
         "returnGeometry": False,
         "spatialRel": "esriSpatialRelIntersects",
         "inSR": 4326,

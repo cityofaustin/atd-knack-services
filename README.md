@@ -13,6 +13,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
   - [Publish to Open Data Portal](#publish-records-to-the-open-data-portal)
   - [Publish to ArcGIS Online](#publish-records-to-arcgis-online)
   - [Publish to another Knack app](#publish-records-to-another-knack-app)
+  - [Knack maintenance: Update location fields in Knack based on AGOL layers](#knack-maintenance-update-location-fields-in-knack-based-on-agol-layers)
 - [Utils](<#utils-(`/services/utils`)>)
 - [Common Tasks](#common-tasks)
   - [Configure a Knack container](#configuring-a-knack-container)
