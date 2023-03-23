@@ -158,7 +158,7 @@ def local_timestamp():
     Used to set datetimes when writing Knack records, because Knack assumes input
     time values are in local time.
     """
-    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp() * 1000
+    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp * 1000
 
 
 def main(args):
