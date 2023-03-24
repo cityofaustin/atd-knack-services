@@ -34,7 +34,7 @@ def get_boolean_columns(client_metadata):
 
 def bools_to_strings(records, boolean_columns):
     """Convert booleans from knack to strings
-    Some Socrata datasets have been been created with type mismatch b/t Knack and Socrata,
+    Some Socrata datasets have been created with type mismatch b/t Knack and Socrata,
     where a boolean field in Knack is configured as a text field in Socrata.
     This function converts a Knack boolean to a string.
 
@@ -55,7 +55,7 @@ def handle_arrays(records):
     for record in records:
         for k, v in record.items():
             if isinstance(v, list):
-                # assumes values in list can be coerced to to strings
+                # assumes values in list can be coerced to strings
                 record[k] = ", ".join([str(i) for i in v])
 
 

@@ -14,6 +14,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
   - [Publish to ArcGIS Online](#publish-records-to-arcgis-online)
   - [Publish to another Knack app](#publish-records-to-another-knack-app)
   - [Knack Maintenance: 311 SR Auto Asset Assign](#knack-maintenance-311-sr-auto-asset-assign)
+  - [Knack maintenance: Update location fields in Knack based on AGOL layers](#knack-maintenance-update-location-fields-in-knack-based-on-agol-layers)
 - [Utils](<#utils-(`/services/utils`)>)
 - [Common Tasks](#common-tasks)
   - [Configure a Knack container](#configuring-a-knack-container)
@@ -205,7 +206,7 @@ The field's display name can be freely-defined, but the field name must be `id` 
 
 If you have a conflicting field in your Knack data named "ID", you should as general best practice rename it. If you absolutely must keep your "ID" field in Knack, this column name will be translated to `_id` when publishing to Socrata, so configure your dataset accordingly.
 
-With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces with underscores and making all characters lowercase.
+With the exception of the ID field, all Knack field names will be translated to Socrata-compliant field names by replacing spaces and dashes with underscores and making all characters lowercase.
 
 Knack container field names missing from the Socrata dataset's fields will be removed from the payload before publishing.
 
@@ -365,9 +366,9 @@ For Knack, in our main `services/config/knack.py` file, this script builds off o
             "connection_field_keys": {"signals": "field_1367"},
             "x_field": "field_1402", # CSR_X_VALUE
             "y_field": "field_1401", # CSR_Y_VALUE
-        },
-    }
-```
+    },
+ }
+ ```
 
 The other half of the config is in `services/config/locations.py`. Broadly it defines where the asset data is stored in Knack and where it is stored in AGOL.
 
@@ -392,7 +393,6 @@ ASSET_CONFIG = {
     },
 }
 ```
-
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
@@ -400,6 +400,61 @@ ASSET_CONFIG = {
 - `--asset, -s` (`str`, required): name of the asset we are pairing SR locations to. (matches the name set in `services/config/locations.py`)
 
 Note that no `date` argument is provided since this script is intended to process all records in the view provided. This view has been configured with a filter to show only records waiting to be processed (`ready_to_process`).
+
+
+### Knack maintenance: Update location fields in Knack based on AGOL layers
+
+Get point geometry for assets in Knack then update location information based on AGOL feature layers using `knack_location_updater.py`. This updates fields like `COUNCIL_DISTRICT` in Knack when there is a new location record created. 
+
+#### Configuration
+
+Two parts need to be defined in order for for this script to run successfully: Knack and AGOL.
+
+Knack definitions build off of the previously defined config in `config/knack.py`, where you need to supply the table's location field (must be created as a location data type in Knack), a boolean `update_processed_field` where the script will set this to True, and the table's object number.
+
+```python
+CONFIG =
+"data-tracker":{
+    "view_1201": {
+            "description": "Arterial Management Locations",
+            "scene": "scene_425",
+            "modified_date_field": "field_508",
+            "location_field_id": "field_182",
+            "update_processed_field":"field_1357", 
+            "object": "object_11", 
+        },
+    }
+```
+
+The AGOL layer definitions are defined at `config/locations.py` where each entry in the `LAYER_CONFIG` list refers to a layer the script query in AGOL for every record. Each layer is defined as a `service_name` and are coded to query our AGOL feature server. A `service_name_secondary` can be supplied to query if no features are found in the first layer.
+
+`outFields` is the attribute in the AGOL feature we will pull to update the knack record at `updateFields`. `handle_features` has two options:
+
+- When multiple features are returned from AGOL, `merge_all` will return a list or a stringified list separated by commas if `apply_format` is set to True.
+- `use_first` will return the first record from the list of features from AGOL.
+
+```python
+LAYER_CONFIG = [
+    {
+        "service_name": "BOUNDARIES_single_member_districts", 
+        "service_name_secondary": "BOUNDARIES_other_council_districts", # optional
+        "outFields": "COUNCIL_DISTRICT", # AGOL layer attribute 
+        "updateFields": "field_189",  # Knack field COUNCIL_DISTRICT
+        "layer_id": 0,
+        "distance": 33,  
+        "units": "esriSRUnit_Foot", 
+        "handle_features": "merge_all", # or use_first
+        "apply_format": False, # Will return COUNCIL_DISTRICT as a list
+    },
+]
+```
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
+  _completely replaced_.
 
 ## Utils (`/services/utils`)
 
@@ -421,7 +476,7 @@ Note also that that. as a best practice, you should not use connection fields in
 
 Follow these steps to add a new column to a dataset.
 
-1. Add the new column to any destination datasets. Keep in mind that the column name in the destination dataset must match the column name in the source Knack object, except that all spaces will be replaced with underscores and all characters converted to lowercase.
+1. Add the new column to any destination datasets. Keep in mind that the column name in the destination dataset must match the column name in the source Knack object, except that all spaces and dashes will be replaced with underscores and all characters converted to lowercase.
 
 2. Add the new column to the Knack view (aka container). Doing this will break the ETL until you complete the steps that follow!
 

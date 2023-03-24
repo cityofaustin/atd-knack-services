@@ -44,7 +44,7 @@ def append_current_timestamp(
         record[key] = now
 
 
-def get_client(host="data.austintexas.gov", timeout=30):
+def get_client(host="datahub.austintexas.gov", timeout=30):
     SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
     SOCRATA_API_KEY_ID = os.getenv("SOCRATA_API_KEY_ID")
     SOCRATA_API_KEY_SECRET = os.getenv("SOCRATA_API_KEY_SECRET")
