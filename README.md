@@ -13,6 +13,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
   - [Publish to Open Data Portal](#publish-records-to-the-open-data-portal)
   - [Publish to ArcGIS Online](#publish-records-to-arcgis-online)
   - [Publish to another Knack app](#publish-records-to-another-knack-app)
+  - [Knack Maintenance: 311 SR Auto Asset Assign](#knack-maintenance-311-sr-auto-asset-assign)
   - [Knack maintenance: Update location fields in Knack based on AGOL layers](#knack-maintenance-update-location-fields-in-knack-based-on-agol-layers)
 - [Utils](<#utils-(`/services/utils`)>)
 - [Common Tasks](#common-tasks)
@@ -334,6 +335,73 @@ FIELD_MAPS = {
 - `--app-name-dest, -dest` (`str`, required): the name of the destination Knack application
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
+### Knack Maintenance: 311 SR Auto Asset Assign
+
+This script pulls data from Knack in a queue of 311 SRs that are in `AUTO_ASSET_ASSIGN_STATUS` of `ready_to_process`. It then uses a supplied `asset` argument and AGOL layer configuration to find the asset(s) nearby the SR (`CSR_Y_VALUE`, `CSR_X_VALUE`). It should be noted that this script currently only assigns signal asset IDs to CSRs. 
+
+- If none are found, we just update the `AUTO_ASSET_ASSIGN_STATUS` to `no_asset_found`. `ASSET_TYPE` and the connection field for our asset are left blank.
+- If multiple assets are found we do nothing. 
+- If one asset is found we search the corresponding asset's knack table for a matching `id` (not the `SIGNAL_ID` or similar but the hidden unique record ID knack uses) and supply that to the connection field for that asset, called `signal` in this case. We also update the `ASSET_TYPE` field with the appropriate asset. 
+
+Every record we update back to knack gets an updated modified date field.
+
+#### Configuration
+
+Two halves of configuration are needed for this script. First is the Knack side and the other will be the asset and layer side.
+
+For Knack, in our main `services/config/knack.py` file, this script builds off of existing config. The key differences are the need for `assign_status_field_id` which is the status field that the script will change to `asset_assigned` if an asset is found. `asset_type_field_id` similarly, is a field that will be filled the asset type found. `x_field` and `y_field` are the location fields provided by the SR record. 
+
+`connection_field_keys` is a dictionary that will match the the asset config. This field is the "connection" datatype that connects the two tables.
+
+```python
+ CONFIG = 
+ "data-tracker":{
+    "view_2362":{
+            "description": "MMC Issue Auto Assign Queue",
+            "scene":"scene_514",
+            "modified_date_field": "field_1385",
+            "object": "object_83", 
+            "assign_status_field_id": "field_2813", 
+            "asset_type_field_id": "field_1649",
+            "connection_field_keys": {"signals": "field_1367"},
+            "x_field": "field_1402", # CSR_X_VALUE
+            "y_field": "field_1401", # CSR_Y_VALUE
+    },
+ }
+ ```
+
+The other half of the config is in `services/config/locations.py`. Broadly it defines where the asset data is stored in Knack and where it is stored in AGOL.
+
+The first part of the config defines the table in Knack where this asset is stored. It must be in the same knack app as the above SR data. The `layer` config is used to define where the AGOL is in our feature server, but also what query will be run. This config will search for assets 10 feet from our SR location.
+
+```python
+ASSET_CONFIG = {
+    "signals": {
+        "scene": "scene_73",
+        "view": "view_197",
+        "ref_obj": ["object_12"],
+        "primary_key": "field_199",  # SIGNAL_ID
+        "display_name": "Signal",
+        "layer": {
+            "service_name": "TRANSPORTATION_signals2",
+            "outFields": "SIGNAL_ID",
+            "layer_id": 0,
+            "distance": 10,
+            "units": "esriSRUnit_Foot",
+            "primary_key": "SIGNAL_ID",
+        },
+    },
+}
+```
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
+- `--asset, -s` (`str`, required): name of the asset we are pairing SR locations to. (matches the name set in `services/config/locations.py`)
+
+Note that no `date` argument is provided since this script is intended to process all records in the view provided. This view has been configured with a filter to show only records waiting to be processed (`ready_to_process`).
+
+
 ### Knack maintenance: Update location fields in Knack based on AGOL layers
 
 Get point geometry for assets in Knack then update location information based on AGOL feature layers using `knack_location_updater.py`. This updates fields like `COUNCIL_DISTRICT` in Knack when there is a new location record created. 
@@ -365,7 +433,6 @@ The AGOL layer definitions are defined at `config/locations.py` where each entry
 - When multiple features are returned from AGOL, `merge_all` will return a list or a stringified list separated by commas if `apply_format` is set to True.
 - `use_first` will return the first record from the list of features from AGOL.
 
-
 ```python
 LAYER_CONFIG = [
     {
@@ -388,8 +455,6 @@ LAYER_CONFIG = [
 - `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
   _completely replaced_.
-
-
 
 ## Utils (`/services/utils`)
 
