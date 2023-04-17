@@ -408,9 +408,9 @@ Get point geometry for assets in Knack then update location information based on
 
 #### Configuration
 
-Two parts need to be defined in order for for this script to run successfully: Knack and AGOL.
+Two parts need to be defined in order for this script to run successfully: Knack and AGOL.
 
-Knack definitions build off of the previously defined config in `config/knack.py`, where you need to supply the table's location field (must be created as a location data type in Knack), a boolean `update_processed_field` where the script will set this to True, and the table's object number.
+Knack definitions build off the previously defined config in `config/knack.py`, where you need to supply the table's location field (must be created as a location data type in Knack), a boolean `update_processed_field` where the script will set this to True, and the table's object number.
 
 ```python
 CONFIG =
@@ -455,6 +455,37 @@ LAYER_CONFIG = [
 - `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
   _completely replaced_.
+
+
+### Knack maintenance: Street Segment Updater
+
+Fetches street segment data from a layer in AGOL and updates a table in Knack.
+
+#### Configuration
+
+Similar to other services, an app and container of the street segment layer must be provided. 
+The only other unique configuration is the `primary_key` field name of the key we will match between 
+AGOL and knack, and the `modified_date_col_name`. Knack and AGOL must share the same field names for both of these.
+
+```python
+CONFIG =
+"data-tracker":{
+        "view_1198": {
+            "description": "Street segments",
+            "scene": "scene_424",
+            "modified_date_col_name": "MODIFIED_DATE",
+            "modified_date_field": "field_144",
+            "primary_key": "SEGMENT_ID_NUMBER",
+            "object": "object_7",
+        },
+    }
+```
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. **Also supports time in UTC**, time is then converted into local knack app time. If no time is provided midnight UTC is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
+  _completely replaced_. 
 
 ## Utils (`/services/utils`)
 
