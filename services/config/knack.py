@@ -336,4 +336,12 @@ CONFIG = {
             "modified_date_field": "field_391",
         }
     },
+    "row": {
+        "view_483": {
+            "description": "TCP Submissions",
+            "scene": "scene_221",
+            "modified_date_field": "field_550",
+            "socrata_resource_id": "vz5j-8n8f",
+        }
+    }
 }
