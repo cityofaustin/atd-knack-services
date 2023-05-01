@@ -204,7 +204,7 @@ def main(args):
             if not res["features"]:
                 # Only need to send the status no_asset_found
                 record[status_field] = "no_asset_found"
-                record[config["asset_type_field_id"]] = ""
+                record[config["asset_type_field_id"]] = "No Asset / Unkown Location / Other"
                 record[connected_field] = ""
                 logger.info(f"No Assets found for ID: {record['id']}.")
             elif len(res["features"]) != 1:

@@ -42,7 +42,7 @@ CONFIG = {
         },
         "view_2362":{
             "description": "MMC Issue Auto Assign Queue",
-            "scene":"scene_514",
+            "scene": "scene_514",
             "modified_date_field": "field_1385",
             "object": "object_83", # Needed for sr_asset_assign
             "assign_status_field_id": "field_2813", # Needed for sr_asset_assign
