@@ -187,7 +187,15 @@ CONFIG = {
             "scene": "scene_1526",
             "modified_date_field": "field_4169",
             "socrata_resource_id": "bp5z-kciq",
-        }
+        },
+        "view_1198": {
+            "description": "Street segments",
+            "scene": "scene_424",
+            "modified_date_field": "field_144",
+            "modified_date_col_name": "MODIFIED_DATE",
+            "primary_key": "SEGMENT_ID_NUMBER",
+            "object": "object_7",
+        },
     },
     "signs-markings": {
         "view_3099": {

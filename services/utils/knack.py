@@ -32,23 +32,25 @@ def socrata_formatter_multipoint(value):
         return None
 
 
-def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central"):
+def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central", use_time=False):
     """Return a Knack filter to retrieve records on or after a given date field/value.
 
-    You should know:
-    - Knack ignores time when querying by date. So we drop it when formatting the
-        filters to avoid any confusion there.
-    - Again, Knack ignores time, so the "is" operator matches on calendar date. And
-        "is after" matches any calendar dates following a given date.
-    - The Knack API seems to be capable of parsing quite a few date formats, but we use
-        `MM/DD/YYYY`
-    - Knack is completely timezone naive. If you provide a date, it assumes the date
-    is referencing the same locality to which the Knack app is configured.
+    Parameters:
+        timestamp (str): string formatted datetime (assumed UTC) 'YYYY-MM-DD HH:MM'
+        date_field (str): field id of the date field you are filtering in knack. Formatted as : field_123
+        tzinfo (str): string of the timezone of the provided Knack App, timestamp will be converted to this.
+        use_time (bool): if True, will use date and time filtering, if not will use only date filtering.
+
+    Returns:
+        filter (dict): A dictionary formatted to work with Knack's API or KnackPy's .get() function
     """
     if not timestamp or not date_field:
         return None
 
-    date_str = arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY")
+    if use_time:
+        date_str = arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY HH:MM")
+    else:
+        date_str = arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY")
 
     return {
         "match": "or",
