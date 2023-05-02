@@ -48,7 +48,7 @@ def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central", use_time
         return None
 
     if use_time:
-        date_str = arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY HH:MM")
+        date_str = arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY HH:mm")
     else:
         date_str = arrow.get(timestamp).to(tzinfo).format("MM/DD/YYYY")
 
