@@ -144,10 +144,14 @@ def main(args):
         features = query_atx_street(
             street_segment[config["primary_key"]], token
         )
-        time.sleep(1) # wait one second between requests to prevent being rate limited
         if features.get("error"):
             # AGOL returns code 200 even for error queries.
-            raise Exception(str(features))
+            # Let's try the query again
+            features = query_atx_street(
+                street_segment[config["primary_key"]], token
+            )
+            if features.get("error"):
+                raise Exception(str(features))
 
         # handling returned segment features from AGOL
         if features.get("features"):
