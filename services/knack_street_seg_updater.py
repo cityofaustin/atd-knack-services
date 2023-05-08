@@ -133,12 +133,11 @@ def main(args):
     app = knackpy.App(app_id=APP_ID, api_key=API_KEY)
     records = app.get(container, filters=filters)
     records_formatted = [record.format() for record in records]
-    field_mapping = create_knack_field_mapping(records[0])
-
     if not records_formatted:
         logger.info('No records to update. Doing nothing.')
         return 0
-
+    field_mapping = create_knack_field_mapping(records[0])
+    
     unmatched_segments = []
     for street_segment in records_formatted:
         features = query_atx_street(
