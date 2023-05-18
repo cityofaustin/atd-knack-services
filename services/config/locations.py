@@ -7,11 +7,10 @@ ASSET_CONFIG = {
         "display_name": "Signal",
         "layer": {
             "service_name": "TRANSPORTATION_signals2",
-            "outFields": "SIGNAL_ID",
+            "outFields": "id",
             "layer_id": 0,
             "distance": 10,
             "units": "esriSRUnit_Foot",
-            "primary_key": "SIGNAL_ID",
         },
     },
 }
