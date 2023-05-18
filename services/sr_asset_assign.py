@@ -15,8 +15,8 @@ APP_ID = os.getenv("KNACK_APP_ID")
 API_KEY = os.getenv("KNACK_API_KEY")
 AGOL_USER = os.getenv("AGOL_USERNAME")
 AGOL_PASS = os.getenv("AGOL_PASSWORD")
-KNACK_API_USER_EMAIL = os.getenv("AGOL_PASSWORD")
-KNACK_API_USER_PW = os.getenv("AGOL_PASSWORD")
+KNACK_API_USER_EMAIL = os.getenv("KNACK_API_USER_EMAIL")
+KNACK_API_USER_PW = os.getenv("KNACK_API_USER_PW")
 
 
 def create_agol_login_token():
