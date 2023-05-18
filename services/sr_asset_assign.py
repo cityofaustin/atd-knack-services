@@ -6,20 +6,20 @@ import os
 import requests
 
 import arrow
-from config.knack import CONFIG, APP_TIMEZONE
+from config.knack import CONFIG
 from config.locations import ASSET_CONFIG
 import utils
 import knackpy
 
 APP_ID = os.getenv("KNACK_APP_ID")
 API_KEY = os.getenv("KNACK_API_KEY")
-PGREST_JWT = os.getenv("PGREST_JWT")
-PGREST_ENDPOINT = os.getenv("PGREST_ENDPOINT")
 AGOL_USER = os.getenv("AGOL_USERNAME")
 AGOL_PASS = os.getenv("AGOL_PASSWORD")
+KNACK_API_USER_EMAIL = os.getenv("AGOL_PASSWORD")
+KNACK_API_USER_PW = os.getenv("AGOL_PASSWORD")
 
 
-def create_login_token():
+def create_agol_login_token():
     """
     Returns an auth token from AGOL, to hopefully reduce the risk of rate-limiting
     h/t: https://community.esri.com/t5/arcgis-rest-api-questions/using-python-to-generate-access-token-for-an/td-p/1133618
@@ -34,8 +34,23 @@ def create_login_token():
         "referer": f"https://{organizationName}.maps.arcgis.com/",
     }
     res = requests.post(url=login_url, data=params)
-
     return res.json()["token"]
+
+
+def create_knack_login_token():
+    """Get a knack user auth token so that we can submit data through an
+    authenticated form in the Data Tracker.
+    See: https://docs.knack.com/docs/user-tokens
+
+    Returns:
+        Str: the token string
+    """
+    data = {"email": KNACK_API_USER_EMAIL, "password": KNACK_API_USER_PW}
+    url = f"https://api.knack.com/v1/applications/{APP_ID}/session"
+    headers = {"Content-Type": "application/json"}
+    res = requests.post(url, headers=headers, json=data)
+    res.raise_for_status()
+    return res.json()["session"]["user"]["token"]
 
 
 def point_in_poly(service_name, layer_id, params):
@@ -45,13 +60,10 @@ def point_in_poly(service_name, layer_id, params):
     docs: http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#//02r3000000p1000000
     """
     query_url = f"https://services.arcgis.com/0L95CJ0VTaxqcmED/ArcGIS/rest/services/{service_name}/FeatureServer/{layer_id}/query"
-
     if "spatialRel" not in params:
         params["spatialRel"] = "esriSpatialRelIntersects"
-
     res = requests.get(query_url, params=params)
     res.raise_for_status()
-
     return res.json()
 
 
@@ -113,45 +125,6 @@ def get_params(layer_config, point, token):
     return params
 
 
-def handle_features(layer, record, connected_field, res):
-    """
-    Handling the case where have features returned from AGOl
-
-    Parameters
-    ----------
-    layer : dict
-        The config information of the layer queried in AGOl.
-    record: dict
-        The knack record we are potentially editing.
-    res: dict
-        The response from the AGOL endpoint
-
-    Returns
-    -------
-    record: dict
-        Edited knack record
-    changed: bool
-        Flag that tells us that we changed something in this record
-    """
-
-    asset_id = res["features"][0]["attributes"].get(layer["layer"]["primary_key"])
-
-    # Searching knack for the matching signal record
-    kwargs = {"scene": layer["scene"], "view": layer["view"]}
-    filters = asset_filter(layer["primary_key"], asset_id)
-    asset = knackpy.api.get(app_id=APP_ID, api_key=API_KEY, filters=filters, **kwargs)
-
-    # both of these cases should never happen if AGOL is in sync with Knack
-    if len(asset) > 1:
-        raise Exception("More than one Knack asset found for given asset id.")
-    elif len(asset) == 0:
-        raise Exception("No corresponding Knack asset found for GIS feature.")
-
-    asset_id = asset[0]["id"]
-    record[connected_field] = asset_id
-    return record
-
-
 def local_timestamp():
     """
     Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
@@ -161,6 +134,18 @@ def local_timestamp():
     return arrow.now("US/Central").replace(tzinfo="UTC").timestamp * 1000
 
 
+def submit_knack_form(token, record):
+    """
+    Submit data via Knack form view.
+    Docs: https://docs.knack.com/docs/view-based-requests
+    """
+    url = f"https://api.knack.com/v1/pages/scene_428/views/view_2367/records/{record['id']}"
+    headers = {"X-Knack-Application-Id": APP_ID, "Authorization": token}
+    res = requests.put(url, headers=headers, json=record)
+    res.raise_for_status()
+    return res
+
+
 def main(args):
     # Parse Arguments
     app_name = args.app_name
@@ -168,7 +153,7 @@ def main(args):
     logger.info(args)
 
     # Get AGOL Token
-    token = create_login_token()
+    token_agol = create_agol_login_token()
 
     # Getting SR data from Knack
     config = CONFIG[app_name][container]
@@ -180,11 +165,12 @@ def main(args):
         logger.info("No SRs waiting in queue to be processed, doing nothing.")
         return 0
 
-    object_id = config["object"]
     status_field = config["assign_status_field_id"]
     connected_field = config["connection_field_keys"][args.asset]
     output_keys = ["id", config["asset_type_field_id"], connected_field]
     layer = ASSET_CONFIG[args.asset]
+
+    token_knack = None
 
     for record in data:
         if (
@@ -194,7 +180,7 @@ def main(args):
                 record[config["x_field"]],
                 record[config["y_field"]],
             ]
-            params = get_params(layer["layer"], point, token)
+            params = get_params(layer["layer"], point, token_agol)
             res = point_in_poly(
                 layer["layer"]["service_name"], layer["layer"]["layer_id"], params
             )
@@ -204,7 +190,9 @@ def main(args):
             if not res["features"]:
                 # Only need to send the status no_asset_found
                 record[status_field] = "no_asset_found"
-                record[config["asset_type_field_id"]] = "No Asset / Unkown Location / Other"
+                record[
+                    config["asset_type_field_id"]
+                ] = "No Asset / Unkown Location / Other"
                 record[connected_field] = ""
                 logger.info(f"No Assets found for ID: {record['id']}.")
             elif len(res["features"]) != 1:
@@ -215,21 +203,20 @@ def main(args):
                 continue
             if len(res["features"]) == 1:
                 logger.info(f"One Asset found for ID: {record['id']}.")
-                record = handle_features(layer, record, connected_field, res)
+                # assumes AGOL layer has 'id' column which holds each record's Knack ID
+                record[connected_field] = res["features"][0]["attributes"]["id"]
                 record[config["asset_type_field_id"]] = layer["display_name"]
+
+            # Get knack token if we haven't fetched one yet
+            if not token_knack:
+                token_knack = create_knack_login_token()
 
             # Updating a record in Knack
             record = {key: record[key] for key in output_keys}
             # Add modified date field for every record:
             record[modified_date_field] = local_timestamp()
             try:
-                knackpy.api.record(
-                    app_id=APP_ID,
-                    api_key=API_KEY,
-                    obj=object_id,
-                    method="update",
-                    data=record,
-                )
+                submit_knack_form(token_knack, record)
             except Exception as e:
                 logger.info(e.response.text)
 
