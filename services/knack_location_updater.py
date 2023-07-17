@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Fetch Knack records from Postgres(t) and update the location information """
 
 import argparse

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """ Fetch 3-1-1 SR records from Knack and assign a nearby asset """
 
 import argparse
