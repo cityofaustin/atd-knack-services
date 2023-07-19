@@ -65,13 +65,14 @@ This is the primary table which holds all knack records. Records are uniquely id
 
 Note that although Knack record IDs are globally unique, this table may hold multiple copies of the same record, but with a different field set, because the same record may be sourced from different views. **You should always reference all primary key columns when reading from or writing data to this table.**
 
-| **Column name** | **Data type**              | **Constraint** | **Note**                      |
-| --------------- | -------------------------- | -------------- | ----------------------------- |
-| `app_id`        | `text`                     | `primary key`  |                               |
-| `container_id`  | `text`                     | `primary key`  |                               |
-| `record_id`     | `text`                     | `primary key`  |                               |
-| `record`        | `json`                     | `not null`     |                               |
-| `updated_at`    | `timestamp with time zone` | `not null`     | _set via trigger `on update`_ |
+| **Column name** | **Data type**              | **Constraint** | **Note**                                                                                                                                                                    |
+| --------------- | -------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`            | `bigint`                   | `unique`       | not used as primary key for reasons described below. this column does offer a performant column to use for record ordering, which is necessary for pagination via PostgREST |
+| `app_id`        | `text`                     | `primary key`  |                                                                                                                                                                             |
+| `container_id`  | `text`                     | `primary key`  |                                                                                                                                                                             |
+| `record_id`     | `text`                     | `primary key`  |                                                                                                                                                                             |
+| `record`        | `json`                     | `not null`     |                                                                                                                                                                             |
+| `updated_at`    | `timestamp with time zone` | `not null`     | _set via trigger `on update`_                                                                                                                                               |
 
 #### `knack_metadata`
 
@@ -337,11 +338,11 @@ FIELD_MAPS = {
 
 ### Knack Maintenance: 311 SR Auto Asset Assign
 
-This script pulls data from Knack in a queue of 311 SRs that are in `AUTO_ASSET_ASSIGN_STATUS` of `ready_to_process`. It then uses a supplied `asset` argument and AGOL layer configuration to find the asset(s) nearby the SR (`CSR_Y_VALUE`, `CSR_X_VALUE`). It should be noted that this script currently only assigns signal asset IDs to CSRs. 
+This script pulls data from Knack in a queue of 311 SRs that are in `AUTO_ASSET_ASSIGN_STATUS` of `ready_to_process`. It then uses a supplied `asset` argument and AGOL layer configuration to find the asset(s) nearby the SR (`CSR_Y_VALUE`, `CSR_X_VALUE`). It should be noted that this script currently only assigns signal asset IDs to CSRs.
 
 - If none are found, we just update the `AUTO_ASSET_ASSIGN_STATUS` to `no_asset_found`. `ASSET_TYPE` and the connection field for our asset are left blank.
-- If multiple assets are found we do nothing. 
-- If one asset is found we search the corresponding asset's knack table for a matching `id` (not the `SIGNAL_ID` or similar but the hidden unique record ID knack uses) and supply that to the connection field for that asset, called `signal` in this case. We also update the `ASSET_TYPE` field with the appropriate asset. 
+- If multiple assets are found we do nothing.
+- If one asset is found we search the corresponding asset's knack table for a matching `id` (not the `SIGNAL_ID` or similar but the hidden unique record ID knack uses) and supply that to the connection field for that asset, called `signal` in this case. We also update the `ASSET_TYPE` field with the appropriate asset.
 
 Every record we update back to knack gets an updated modified date field.
 
@@ -349,26 +350,26 @@ Every record we update back to knack gets an updated modified date field.
 
 Two halves of configuration are needed for this script. First is the Knack side and the other will be the asset and layer side.
 
-For Knack, in our main `services/config/knack.py` file, this script builds off of existing config. The key differences are the need for `assign_status_field_id` which is the status field that the script will change to `asset_assigned` if an asset is found. `asset_type_field_id` similarly, is a field that will be filled the asset type found. `x_field` and `y_field` are the location fields provided by the SR record. 
+For Knack, in our main `services/config/knack.py` file, this script builds off of existing config. The key differences are the need for `assign_status_field_id` which is the status field that the script will change to `asset_assigned` if an asset is found. `asset_type_field_id` similarly, is a field that will be filled the asset type found. `x_field` and `y_field` are the location fields provided by the SR record.
 
 `connection_field_keys` is a dictionary that will match the the asset config. This field is the "connection" datatype that connects the two tables.
 
 ```python
- CONFIG = 
+ CONFIG =
  "data-tracker":{
     "view_2362":{
             "description": "MMC Issue Auto Assign Queue",
             "scene":"scene_514",
             "modified_date_field": "field_1385",
-            "object": "object_83", 
-            "assign_status_field_id": "field_2813", 
+            "object": "object_83",
+            "assign_status_field_id": "field_2813",
             "asset_type_field_id": "field_1649",
             "connection_field_keys": {"signals": "field_1367"},
             "x_field": "field_1402", # CSR_X_VALUE
             "y_field": "field_1401", # CSR_Y_VALUE
     },
  }
- ```
+```
 
 The other half of the config is in `services/config/locations.py`. Broadly it defines where the asset data is stored in Knack and where it is stored in AGOL.
 
@@ -393,6 +394,7 @@ ASSET_CONFIG = {
     },
 }
 ```
+
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
@@ -401,10 +403,9 @@ ASSET_CONFIG = {
 
 Note that no `date` argument is provided since this script is intended to process all records in the view provided. This view has been configured with a filter to show only records waiting to be processed (`ready_to_process`).
 
-
 ### Knack maintenance: Update location fields in Knack based on AGOL layers
 
-Get point geometry for assets in Knack then update location information based on AGOL feature layers using `knack_location_updater.py`. This updates fields like `COUNCIL_DISTRICT` in Knack when there is a new location record created. 
+Get point geometry for assets in Knack then update location information based on AGOL feature layers using `knack_location_updater.py`. This updates fields like `COUNCIL_DISTRICT` in Knack when there is a new location record created.
 
 #### Configuration
 
@@ -420,8 +421,8 @@ CONFIG =
             "scene": "scene_425",
             "modified_date_field": "field_508",
             "location_field_id": "field_182",
-            "update_processed_field":"field_1357", 
-            "object": "object_11", 
+            "update_processed_field":"field_1357",
+            "object": "object_11",
         },
     }
 ```
@@ -436,13 +437,13 @@ The AGOL layer definitions are defined at `config/locations.py` where each entry
 ```python
 LAYER_CONFIG = [
     {
-        "service_name": "BOUNDARIES_single_member_districts", 
+        "service_name": "BOUNDARIES_single_member_districts",
         "service_name_secondary": "BOUNDARIES_other_council_districts", # optional
-        "outFields": "COUNCIL_DISTRICT", # AGOL layer attribute 
+        "outFields": "COUNCIL_DISTRICT", # AGOL layer attribute
         "updateFields": "field_189",  # Knack field COUNCIL_DISTRICT
         "layer_id": 0,
-        "distance": 33,  
-        "units": "esriSRUnit_Foot", 
+        "distance": 33,
+        "units": "esriSRUnit_Foot",
         "handle_features": "merge_all", # or use_first
         "apply_format": False, # Will return COUNCIL_DISTRICT as a list
     },
@@ -456,15 +457,14 @@ LAYER_CONFIG = [
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
   _completely replaced_.
 
-
 ### Knack maintenance: Street Segment Updater
 
 Fetches street segment data from a layer in AGOL and updates a table in Knack.
 
 #### Configuration
 
-Similar to other services, an app and container of the street segment layer must be provided. 
-The only other unique configuration is the `primary_key` field name of the key we will match between 
+Similar to other services, an app and container of the street segment layer must be provided.
+The only other unique configuration is the `primary_key` field name of the key we will match between
 AGOL and knack, and the `modified_date_col_name`. Knack and AGOL must share the same field names for both of these.
 
 ```python
@@ -480,12 +480,13 @@ CONFIG =
         },
     }
 ```
+
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. **Also supports time in UTC**, time is then converted into local knack app time. If no time is provided midnight UTC is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
-  _completely replaced_. 
+  _completely replaced_.
 
 ## Utils (`/services/utils`)
 
