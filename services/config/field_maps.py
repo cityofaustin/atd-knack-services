@@ -118,6 +118,7 @@ SECONDARY_SIGNALS = {
         "view_197": {
             "SECONDARY_SIGNALS": "field_1329_raw",
             "PRIMARY_SIGNAL": "field_1121_raw",
+            "update_field": "field_1329",
         }
     }
 }
