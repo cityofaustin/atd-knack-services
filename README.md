@@ -15,6 +15,8 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
   - [Publish to another Knack app](#publish-records-to-another-knack-app)
   - [Knack Maintenance: 311 SR Auto Asset Assign](#knack-maintenance-311-sr-auto-asset-assign)
   - [Knack maintenance: Update location fields in Knack based on AGOL layers](#knack-maintenance-update-location-fields-in-knack-based-on-agol-layers)
+  - [Knack maintenance: Street Segment Updater](#knack-maintenance-street-segment-updater)
+  - [Knack maintenance: Secondary Signals Updater](knack-maintenance-secondary-signals-updater)
 - [Utils](<#utils-(`/services/utils`)>)
 - [Common Tasks](#common-tasks)
   - [Configure a Knack container](#configuring-a-knack-container)
@@ -487,6 +489,49 @@ CONFIG =
 - `--container, -c` (`str`, required): the object or view key of the source container
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. **Also supports time in UTC**, time is then converted into local knack app time. If no time is provided midnight UTC is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
   _completely replaced_.
+
+### Knack maintenance: Secondary Signals Updater
+
+Propagates updates to secondary-to-primary signal relationships. This script updates the `SECONDARY_SIGNALS` field
+when changes are detected in the `PRIMARY_SIGNAL` field to reduce overhead of needing AMD staff needing to maintain both
+sides of this primary-secondary relationship and prevents de-sycning.
+
+#### Configuration
+
+`app-name`,`view`, `scene`, and `object` of the traffic signal table are the configuration items are required in `config/knack.py`.  
+
+```python
+CONFIG = {
+    "data-tracker":{
+        "view_197": {
+            "description": "Signals data pub view",
+            "scene": "scene_73",
+            "object": "object_12",
+        },
+    }
+}
+```
+
+In `config/field_maps.py`, some knack field definitions are required. The field of the primary signal relationship and 
+the field of the secondary signal field. Along with the field that is going to be updated by the script.
+
+```python
+SECONDARY_SIGNALS = {
+    "data-tracker": {
+        "view_197": {
+            "SECONDARY_SIGNALS": "field_1329_raw",  
+            "PRIMARY_SIGNAL": "field_1121_raw",  
+            "update_field": "field_1329", 
+        }
+    }
+}
+```
+
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
 
 ## Utils (`/services/utils`)
 
