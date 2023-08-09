@@ -150,9 +150,8 @@ def main(args):
     if len(payload) == 0:
         logger.info("No changes detected in Knack, doing nothing.")
         return 0
-
+    logger.info(payload)
     for record in payload:
-        logger.info(payload)
         res = knackpy.api.record(
             app_id=APP_ID,
             api_key=API_KEY,
