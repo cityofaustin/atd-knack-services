@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Update traffic signal records with secondary signal relationships
 """
@@ -13,17 +14,6 @@ import utils
 
 APP_ID = os.getenv("KNACK_APP_ID")
 API_KEY = os.getenv("KNACK_API_KEY")
-
-def cli_args():
-    parser = argutil.get_parser(
-        "secondary_signals_updater.py",
-        "Update traffic signal records with secondary signal relationships.",
-        "app_name",
-    )
-
-    args = parser.parse_args()
-
-    return args
 
 
 def get_new_prim_signals(signals, field_maps):
@@ -101,9 +91,7 @@ def main(args):
 
     # Get Signals Knack Data
     kwargs = {"scene": config["scene"], "view": container}
-    data = knackpy.api.get(
-        app_id=APP_ID, api_key=API_KEY, **kwargs
-    )
+    data = knackpy.api.get(app_id=APP_ID, api_key=API_KEY, **kwargs)
 
     primary_signals_old = get_old_prim_signals(data, field_mapping)
     primary_signals_new = get_new_prim_signals(data, field_mapping)
@@ -127,6 +115,9 @@ def main(args):
 
             # Checking if things have changed
             if old_secondaries != new_secondaries:
+                logger.info(
+                    f"Changed primary <> secondary signal relationship detected for signal {signal_id}"
+                )
                 payload.append(
                     {
                         "id": signal_id,
@@ -136,8 +127,14 @@ def main(args):
 
         # Catching new primary-secondary relationship
         else:
+            logger.info(
+                f"New primary <> secondary signal relationship detected for signal {signal_id}"
+            )
             payload.append(
-                {"id": signal_id, field_mapping["update_field"]: primary_signals_new[signal_id]}
+                {
+                    "id": signal_id,
+                    field_mapping["update_field"]: primary_signals_new[signal_id],
+                }
             )
 
     for signal_id in primary_signals_old:
@@ -145,12 +142,17 @@ def main(args):
         identify primary-secondary relationships that have been removed
         """
         if signal_id not in primary_signals_new:
+            logger.info(
+                f"Deleted primary <> secondary signal relationship detected for signal {signal_id}"
+            )
             payload.append({"id": signal_id, field_mapping["update_field"]: []})
 
     if len(payload) == 0:
+        logger.info("No changes detected in Knack, doing nothing.")
         return 0
 
     for record in payload:
+        logger.info(payload)
         res = knackpy.api.record(
             app_id=APP_ID,
             api_key=API_KEY,
