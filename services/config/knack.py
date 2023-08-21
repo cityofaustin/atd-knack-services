@@ -15,6 +15,7 @@ CONFIG = {
             "service_id": "e6eb94d1e7cc45c2ac452af6ae6aa534",
             "item_type": "layer",
             "layer_id": 0,
+            "object": "object_12",
             "dest_apps": {
                 "smart-mobility": {
                     "container": "view_396",
