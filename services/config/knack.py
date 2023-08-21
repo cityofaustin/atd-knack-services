@@ -197,6 +197,12 @@ CONFIG = {
             "primary_key": "SEGMENT_ID_NUMBER",
             "object": "object_7",
         },
+        "view_3869": {
+            "description": "Preventative maintenance - Signals",
+            "scene": "scene_1545",
+            "modified_date_field": "field_2561",
+            "socrata_resource_id": "mudg-bik3"
+        },
     },
     "signs-markings": {
         "view_3099": {
