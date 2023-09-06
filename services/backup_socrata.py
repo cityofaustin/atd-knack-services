@@ -11,10 +11,11 @@ import utils
 BUCKET = os.getenv("BUCKET")
 AWS_ACCESS_ID = os.getenv("AWS_ACCESS_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
 
 
 def export_dataset(resource_id):
-    url = f"https://data.austintexas.gov/resource/{resource_id}.csv?$limit=99999999"
+    url = f"https://data.austintexas.gov/resource/{resource_id}.csv?$limit=99999999?$$app_token={SOCRATA_APP_TOKEN}"
     res = requests.get(url)
     data = res.text
     return data
