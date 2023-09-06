@@ -23,7 +23,9 @@ def export_dataset(resource_id):
 
 def main(args):
     aws_s3_client = boto3.client(
-        "s3", aws_access_key_id=AWS_ACCESS_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        "s3",
+        aws_access_key_id=AWS_ACCESS_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     )
 
     # Parse Arguments
@@ -33,7 +35,7 @@ def main(args):
     logger.info(resource_id)
 
     # File name and get s3 folder
-    subdir = resource_id.replace('-', '_')  # folder name is resource ID
+    subdir = resource_id.replace("-", "_")  # folder name is resource ID
     timestamp = datetime.datetime.now()
     file_name = timestamp.strftime("%y_%m_%d")
     file_name = f"{subdir}/{file_name}.csv"
@@ -46,12 +48,17 @@ def main(args):
     logger.info(f"created backup file: {file_name}")
 
     # Keeping only the last 30 days of data
-    s3_file_list = aws_s3_client.list_objects_v2(Bucket=BUCKET, Prefix=subdir)["Contents"]
+    s3_file_list = aws_s3_client.list_objects_v2(Bucket=BUCKET, Prefix=subdir)[
+        "Contents"
+    ]
     if len(s3_file_list) > 30:
-        get_last_modified = lambda obj: int(obj['LastModified'].strftime('%s'))
-        oldest_file = [obj['Key'] for obj in sorted(s3_file_list, key=get_last_modified)][0]
+        get_last_modified = lambda obj: int(obj["LastModified"].strftime("%s"))
+        oldest_file = [
+            obj["Key"] for obj in sorted(s3_file_list, key=get_last_modified)
+        ][0]
         aws_s3_client.delete_object(Bucket=BUCKET, Key=oldest_file)
         logger.info(f"deleted backup file: {oldest_file}")
+
 
 if __name__ == "__main__":
     # CLI arguments definition
