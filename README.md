@@ -11,6 +11,7 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
 - [Configuration](#configuration)
 - [Services](<#services-(`/services`)>)
   - [Publish to Open Data Portal](#publish-records-to-the-open-data-portal)
+  - [Backup an Open Data Portal Dataset](#backup-an-open-data-portal-dataset)
   - [Publish to ArcGIS Online](#publish-records-to-arcgis-online)
   - [Publish to another Knack app](#publish-records-to-another-knack-app)
   - [Knack Maintenance: 311 SR Auto Asset Assign](#knack-maintenance-311-sr-auto-asset-assign)
@@ -116,6 +117,9 @@ The supported environmental variables for using these scripts are listed below. 
 - `SOCRATA_APP_TOKEN`: The Socrata app token
 - `PGREST_JWT`: A JSON web token used to authenticate PostgREST requests
 - `PGREST_ENDPOINT`: The URL of the PostgREST server. Currently available at `https://atd-knack-services.austinmobility.io`
+- `BUCKET`: Only needed for `backup_socrata.py`, S3 bucket name for storing socrata dataset backups
+- `AWS_ACCESS_ID`: Only needed for `backup_socrata.py`, AWS access credentials with read/write/delete privileges for the S3 bucket
+- `AWS_SECRET_ACCESS_KEY`: Only needed for `backup_socrata.py`, AWS access credentials with read/write/delete privileges for the S3 bucket
 
 If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. For development purpsoses, this command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
 
@@ -218,6 +222,31 @@ $ python records_to_socrata.py \
     -a data-tracker \
     -c view_1 \
     -d "2020-09-08T09:21:08-05:00"
+```
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
+- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
+  _completely replaced_.
+
+### Backup an Open Data Portal Dataset
+
+#### Configuration
+
+An AWS S3 bucket must be created along with the AWS access credentials and supplied in the environment variables for this script.
+Required Environment variables:
+- `BUCKET`
+- `AWS_ACCESS_ID`
+- `AWS_SECRET_ACCESS_KEY`
+
+The supplied `container`'s `socrata_resource_id` becomes a subdirectory in the s3 bucket where up to 30 days of full copies of the dataset are stored as CSVs (assuming this was run daily).
+
+```shell
+$ python backup_socrata.py \
+    -a data-tracker \
+    -c view_1
 ```
 
 #### CLI arguments
