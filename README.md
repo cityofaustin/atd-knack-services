@@ -253,8 +253,6 @@ $ python backup_socrata.py \
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the object or view key of the source container
-- `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed and the destination dataset will be
-  _completely replaced_.
 
 ### Publish records to ArcGIS Online
 
