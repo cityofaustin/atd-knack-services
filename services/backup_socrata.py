@@ -15,8 +15,10 @@ SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
 
 
 def export_dataset(resource_id):
-    url = f"https://data.austintexas.gov/resource/{resource_id}.csv?$limit=99999999?$$app_token={SOCRATA_APP_TOKEN}"
+    url = f"https://data.austintexas.gov/resource/{resource_id}.csv?$limit=99999999&$$app_token={SOCRATA_APP_TOKEN}"
     res = requests.get(url)
+    if res.status_code != 200:
+        raise res.text
     data = res.text
     return data
 
