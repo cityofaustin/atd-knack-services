@@ -197,6 +197,12 @@ CONFIG = {
             "primary_key": "SEGMENT_ID_NUMBER",
             "object": "object_7",
         },
+        "view_3897": {
+            "description": "AMD Inventory transactions",
+            "scene": "scene_1555",
+            "modified_date_field": "field_771",
+            "socrata_resource_id": "3tjk-hanz",
+        }
     },
     "signs-markings": {
         "view_3099": {
