@@ -15,7 +15,7 @@ def format_filter_date(date_from_args):
 
 
 def get_pks(field_map, app_name_dest):
-    """ return the src and destination field name of the primay key """
+    """ return the src and destination field name of the primary key """
     pk_field = [f for f in field_map if f.get("primary_key")]
     try:
         assert len(pk_field) == 1
