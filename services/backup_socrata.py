@@ -3,6 +3,7 @@ import argparse
 import datetime
 import os
 import requests
+from requests.auth import HTTPBasicAuth
 
 import boto3
 
@@ -13,13 +14,16 @@ BUCKET = os.getenv("BUCKET")
 AWS_ACCESS_ID = os.getenv("AWS_ACCESS_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 SOCRATA_APP_TOKEN = os.getenv("SOCRATA_APP_TOKEN")
+SOCRATA_API_KEY_ID = os.getenv("SOCRATA_API_KEY_ID")
+SOCRATA_API_KEY_SECRET = os.getenv("SOCRATA_API_KEY_SECRET")
 
 
 def export_dataset(resource_id):
-    url = f"https://data.austintexas.gov/resource/{resource_id}.csv?$limit=99999999&$$app_token={SOCRATA_APP_TOKEN}"
-    res = requests.get(url)
+    url = f"https://datahub.austintexas.gov/resource/{resource_id}.csv?$limit=99999999&$$app_token={SOCRATA_APP_TOKEN}"
+    basic = HTTPBasicAuth(username=SOCRATA_API_KEY_ID, password=SOCRATA_API_KEY_SECRET)
+    res = requests.get(url, auth=basic)
     if res.status_code != 200:
-        raise res.text
+        raise Exception(res.text)
     data = res.text
     return data
 
