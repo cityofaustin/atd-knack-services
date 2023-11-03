@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import argparse
+import csv
 import datetime
+from io import StringIO
+import json
 import os
 import requests
 from requests.auth import HTTPBasicAuth
@@ -19,14 +22,35 @@ SOCRATA_API_KEY_SECRET = os.getenv("SOCRATA_API_KEY_SECRET")
 
 
 def export_dataset(resource_id):
-    url = f"https://datahub.austintexas.gov/resource/{resource_id}.csv?$limit=99999999&$$app_token={SOCRATA_APP_TOKEN}"
     basic = HTTPBasicAuth(username=SOCRATA_API_KEY_ID, password=SOCRATA_API_KEY_SECRET)
-    res = requests.get(url, auth=basic)
-    if res.status_code != 200:
-        raise Exception(res.text)
-    data = res.text
-    return data
+    keep_going = True
+    offset = 0
+    data = []
+    while keep_going:
+        url = f"https://datahub.austintexas.gov/resource/{resource_id}.json?$limit=100000&$offset={offset}&$$app_token={SOCRATA_APP_TOKEN}"
+        res = requests.get(url, auth=basic, timeout=30)
+        if res.status_code != 200:
+            raise Exception(res.text)
+        offset += 100000
+        if not json.loads(res.text):
+            keep_going = False
+        else:
+            data = data + json.loads(res.text)
 
+    # Get column headers
+    url = f"https://datahub.austintexas.gov/resource/{resource_id}.csv?$limit=0&$$app_token={SOCRATA_APP_TOKEN}"
+    res = requests.get(url, auth=basic, timeout=30)
+    csv_file = StringIO(res.text)
+    csv_reader = csv.reader(csv_file)
+    for row in csv_reader:
+        headers = row
+
+    # Output to csv
+    csv_data = StringIO()
+    csv_writer = csv.DictWriter(csv_data, fieldnames=headers)
+    csv_writer.writeheader()
+    csv_writer.writerows(data)
+    return csv_data.getvalue()
 
 def main(args):
     aws_s3_client = boto3.client(
