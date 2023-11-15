@@ -167,7 +167,7 @@ def main():
 
     logger.info("Uploading features...")
 
-    for features_chunk in chunks(features, 500):
+    for features_chunk in chunks(features, 50):
         logger.info("Uploading chunk...")
         res = resilient_layer_request(
             layer.edit_features, {"adds": features_chunk, "rollback_on_failure": False}
