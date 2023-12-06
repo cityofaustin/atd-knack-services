@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """ Fetch Knack records from Postgres(t) and upload to another Knack app """
 import os
-
 import arrow
 import knackpy
 
@@ -45,7 +44,7 @@ def create_mapped_record(record, field_map, app_name_dest):
 
         field_dest = field[app_name_dest]
         handler_func = field.get("handler")
-        mapped_record[field[app_name_dest]] = (
+        mapped_record[field_dest] = (
             val if not handler_func else handler_func(val)
         )
 
@@ -58,13 +57,21 @@ def is_equal(rec_src, rec_dest, keys):
 
 
 def handle_records(data_src, data_dest, field_map, app_name_dest):
+    """
+    data_src: list of records from source knack app
+    data_dest: list of records in destination knack app
+    field_map: list of objects containing source app fields mapped to destination app fields
+    app_name_dest: name of destination knack app
+    """
     pk_src, pk_dest = get_pks(field_map, app_name_dest)
+    # make list of fields in records to compare for differences
     compare_keys = [
         field[app_name_dest] for field in field_map if not field.get("ignore_diff")
     ]
     todos = []
     for rec_src in data_src:
         matched = False
+        # mapped record is record from source app with fields that match the destination app
         mapped_record = create_mapped_record(rec_src, field_map, app_name_dest)
         id_src = mapped_record[pk_dest]
         for rec_dest in data_dest:
@@ -100,7 +107,7 @@ def main():
     filter_iso_date_str = format_filter_date(args.date)
 
     logger.info(
-        f"Downloading records from app {APP_ID_SRC}, container {container_src}."
+        f"Downloading records from app {APP_ID_SRC} ({app_name_src}), container {container_src}."
     )
 
     data_src = client_postgrest.select(
@@ -120,9 +127,10 @@ def main():
         return
 
     logger.info(
-        f"Updating/creating records in app {APP_ID_DEST}, container {container_dest}."
+        f"Updating/creating records in app {APP_ID_DEST} ({app_name_dest}), container {container_dest}."
     )
 
+    # existing data in destination knack app
     data_dest = client_postgrest.select(
         "knack",
         params={
