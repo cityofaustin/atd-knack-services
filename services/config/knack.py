@@ -211,6 +211,10 @@ CONFIG = {
             "item_type": "layer",
             "layer_id": 0,
             "modified_date_field": "field_217",
+            # socrata publishing is currently disabled because the data has extra ranking columns
+            # that were populated by a legacy script. we are waiting on direction from AMD
+            # before we switch this on
+            # "socrata_resource_id": "f6qu-b7zb"
         },
     },
     "signs-markings": {
