@@ -202,7 +202,16 @@ CONFIG = {
             "scene": "scene_1555",
             "modified_date_field": "field_771",
             "socrata_resource_id": "3tjk-hanz",
-        }
+        },
+        "view_200": {
+            "description": "AMD signal & PHB requests",
+            "scene": "scene_75",
+            "location_field_id": "field_182",
+            "service_id": "c8577cef82ef4e6a89933a7a216f1ae1",
+            "item_type": "layer",
+            "layer_id": 0,
+            "modified_date_field": "field_217",
+        },
     },
     "signs-markings": {
         "view_3099": {
