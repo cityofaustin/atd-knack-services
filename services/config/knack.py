@@ -175,11 +175,6 @@ CONFIG = {
             "service_id": "ebde70df086942c286dcf9f3f3449f2f",
             "layer_id": 0,
             "item_type": "layer",
-        },
-        "view_3898": {
-            "description": "School Beacons EDP",
-            "scene": "scene_1556",
-            "modified_date_field": "field_4038",
             "socrata_resource_id": "8whb-sg4d"
         },
         "view_3488": {
