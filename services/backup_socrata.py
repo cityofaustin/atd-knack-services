@@ -60,9 +60,14 @@ def main(args):
     )
 
     # Parse Arguments
-    app_name = args.app_name
-    container = args.container
-    resource_id = CONFIG[app_name][container]["socrata_resource_id"]
+    if args.app_name and args.container:
+        app_name = args.app_name
+        container = args.container
+        resource_id = CONFIG[app_name][container]["socrata_resource_id"]
+    elif args.dataset:
+        resource_id = args.dataset
+    else:
+        raise Exception("No Socrata resource argument supplied.")
     logger.info(resource_id)
 
     # File name and get s3 folder
@@ -107,6 +112,13 @@ if __name__ == "__main__":
         "--container",
         type=str,
         help="str: AKA API view in the config.py file with the selected socrata_resource_id to backup.",
+    )
+
+    parser.add_argument(
+        "-f",
+        "--dataset",
+        type=str,
+        help="str: Alternatively to app name/container, the Socrata resource ID (AKA 4x4).",
     )
 
     args = parser.parse_args()

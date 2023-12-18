@@ -249,10 +249,19 @@ $ python backup_socrata.py \
     -c view_1
 ```
 
+Alternatively, you can supply the "four-by-four" Socrata resource ID with the `--dataset` param:
+```shell
+$ python backup_socrata.py \
+    --dataset dx9v-zd7x
+```
+
 #### CLI arguments
 
-- `--app-name, -a` (`str`, required): the name of the source Knack application
-- `--container, -c` (`str`, required): the object or view key of the source container
+- `--app-name, -a` (`str`, required<sup>*</sup>): the name of the source Knack application
+- `--container, -c` (`str`, required<sup>*</sup>): the object or view key of the source container
+- `--dataset, -f` (`str`, required<sup>*</sup>): Alternatively to app name/container, the Socrata resource ID (AKA 4x4).
+
+<sup>*</sup>either the app-name and container can be supplied or the dataset resource ID.
 
 ### Publish records to ArcGIS Online
 
