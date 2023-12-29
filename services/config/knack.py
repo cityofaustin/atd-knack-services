@@ -283,7 +283,7 @@ CONFIG = {
             "layer_id": 0,
             "item_type": "layer",
             "location_field_id": "field_3300",
-            "socrata_resource_id": "ivss-na93"
+            "socrata_resource_id": "jji9-2k5d"
         },
         "view_3107": {
             "description": "Signs work orders",
