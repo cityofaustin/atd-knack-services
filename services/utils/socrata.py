@@ -14,7 +14,7 @@ def get_field_type_by_field_name(field_name, metadata):
         raise ValueError(f"Unable to find field {field_name}")
 
 
-def get_floating_timestamp_fields(metadata):
+def get_floating_timestamp_fields(resource_id, metadata):
     return [
         c["fieldName"]
         for c in metadata["columns"]
