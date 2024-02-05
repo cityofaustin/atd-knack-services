@@ -233,7 +233,7 @@ def local_timestamp():
     Used to set datetimes when writing Knack records, because Knack assumes input
     time values are in local time.
     """
-    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp * 1000
+    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp() * 1000
 
 
 def main(args):
@@ -252,6 +252,7 @@ def main(args):
         args.date, modified_date_field, tzinfo=APP_TIMEZONE
     )
     data = knackpy.api.get(app_id=APP_ID, api_key=API_KEY, filters=filters, **kwargs)
+    logger.info(f"Processing {len(data)} records")
 
     object = config["object"]
     loc_field = config["location_field_id"]
