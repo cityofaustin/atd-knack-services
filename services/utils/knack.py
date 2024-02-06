@@ -1,4 +1,5 @@
 import arrow
+from dateutil import tz
 
 
 def socrata_formatter_location(value):
@@ -30,6 +31,15 @@ def socrata_formatter_multipoint(value):
         }
     except ValueError:
         return None
+
+
+def local_timestamp(tzname="US/Central"):
+    """
+    Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
+    Used to set datetimes when writing Knack records, because Knack assumes input
+    time values are in local time.
+    """
+    return arrow.now(tzname).replace(tzinfo=tz.gettz("UTC")).int_timestamp * 1000
 
 
 def date_filter_on_or_after(timestamp, date_field, tzinfo="US/Central", use_time=False):

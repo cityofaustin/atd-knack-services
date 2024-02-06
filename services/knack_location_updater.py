@@ -2,7 +2,6 @@
 """ Fetch Knack records from Postgres(t) and update the location information """
 
 import argparse
-import logging
 import os
 import requests
 
@@ -227,15 +226,6 @@ def handle_features(changed, layer, record, res):
     return record, changed
 
 
-def local_timestamp():
-    """
-    Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
-    Used to set datetimes when writing Knack records, because Knack assumes input
-    time values are in local time.
-    """
-    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp() * 1000
-
-
 def main(args):
     # Parse Arguments
     app_name = args.app_name
@@ -296,7 +286,7 @@ def main(args):
             record = {key: record[key] for key in output_keys}
             # Two additional fields for every record:
             record[update_processed_field] = True
-            record[modified_date_field] = local_timestamp()
+            record[modified_date_field] = utils.knack.local_timestamp()
             try:
                 knackpy.api.record(
                     app_id=APP_ID,

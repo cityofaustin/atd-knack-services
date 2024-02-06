@@ -1,4 +1,4 @@
-arrow==0.15.*
+arrow==1.*
 knackpy==1.0.*
 sodapy==2.1.*
 boto3==1.19.*

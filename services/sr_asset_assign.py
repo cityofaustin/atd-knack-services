@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 """ Fetch 3-1-1 SR records from Knack and assign a nearby asset """
-
 import argparse
-import logging
 import os
 import requests
 
-import arrow
 from config.knack import CONFIG
 from config.locations import ASSET_CONFIG
 import utils
@@ -126,15 +123,6 @@ def get_params(layer_config, point, token):
     return params
 
 
-def local_timestamp():
-    """
-    Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
-    Used to set datetimes when writing Knack records, because Knack assumes input
-    time values are in local time.
-    """
-    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp * 1000
-
-
 def submit_knack_form(token, record):
     """
     Submit data via Knack form view.
@@ -215,7 +203,7 @@ def main(args):
             # Updating a record in Knack
             record = {key: record[key] for key in output_keys}
             # Add modified date field for every record:
-            record[modified_date_field] = local_timestamp()
+            record[modified_date_field] = utils.knack.local_timestamp()
             try:
                 submit_knack_form(token_knack, record)
             except Exception as e:

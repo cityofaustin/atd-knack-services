@@ -2,9 +2,7 @@
 import argparse
 import os
 import requests
-import time
 
-import arrow
 import knackpy
 
 import utils
@@ -70,14 +68,6 @@ def are_equal(knack_dict, agol_dict):
         logger.info(f"mismatched field(s): {mismatched_keys}")
         return False
     return True
-
-def local_timestamp():
-    """
-    Create a "local" timestamp (in milliseconds), ie local time represented as a unix timestamp.
-    Used to set datetimes when writing Knack records, because Knack assumes input
-    time values are in local time.
-    """
-    return arrow.now("US/Central").replace(tzinfo="UTC").timestamp * 1000
 
 def create_knack_field_mapping(record):
     """
@@ -168,7 +158,7 @@ def main(args):
                 if not are_equal(street_segment, segment_data):
                     logger.info(f'Change detected for segment ID: {street_segment[config["primary_key"]]}')
                     segment_data["id"] = street_segment["id"]
-                    segment_data[config["modified_date_col_name"]] = local_timestamp()
+                    segment_data[config["modified_date_col_name"]] = utils.knack.local_timestamp()
                     # Uploading updated data back to Knack
                     update_record(config, segment_data, field_mapping)
             else:
