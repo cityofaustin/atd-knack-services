@@ -1,4 +1,4 @@
-arcgis==1.8.*
+arcgis==1.*
 arrow==1.*
 knackpy==1.0.*
 sodapy==2.1.*
