@@ -177,6 +177,12 @@ CONFIG = {
             "item_type": "layer",
             "socrata_resource_id": "8whb-sg4d"
         },
+        "view_4027": {
+            "description": "School zone beacon zones",
+            "scene": "scene_1609",
+            "modified_date_field": "field_1304",
+            "socrata_resource_id": "vz34-kwdc",
+        },
         "view_3488": {
             "description": "Signal studies for signal evaluations map",
             "scene": "scene_1233",
