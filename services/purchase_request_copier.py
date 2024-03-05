@@ -57,12 +57,15 @@ def main(args):
     config = CONFIG[app_name][container]
 
     # Use a "free" API call to check for if there's purchase requests to be copied
-    app = knackpy.App(app_id=APP_ID, api_key=None)
-    records = app.get(container, filters=None)
+    records = knackpy.api.get(app_id=APP_ID, view=container, scene=config["scene"])
 
     if len(records) == 0:
         logger.info("No purchase requests to copy, did nothing.")
         return 0
+
+    # If we have records to copy, get the full metadata of the app/records.
+    app = knackpy.App(app_id=APP_ID, api_key=API_KEY)
+    records = app.get(container, filters=None)
 
     logger.info(f"Copying {len(records)} Purchase Requests")
     # Creating a copy of the purchase request and assigning it to person requesting the copy
@@ -110,7 +113,6 @@ def main(args):
                 }
             ],
         }
-        app = knackpy.App(app_id=APP_ID, api_key=API_KEY)
         item_records = app.get(config["pr_items"]["object"], filters=item_filter)
 
         logger.info(f"Copying {len(item_records)} Purchase Request items")
