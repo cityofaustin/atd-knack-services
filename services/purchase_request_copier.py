@@ -113,7 +113,9 @@ def main(args):
                 }
             ],
         }
-        item_records = app.get(config["pr_items"]["object"], filters=item_filter)
+        item_records = app.get(
+            config["pr_items"]["object"], filters=item_filter, refresh=True
+        )
 
         logger.info(f"Copying {len(item_records)} Purchase Request items")
         # Copying over PR items to the newly created PR
