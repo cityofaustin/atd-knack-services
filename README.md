@@ -44,9 +44,9 @@ A "container" is a generic term to identify the source for a set of Knack applic
 
 These services are designed to keep Knack application data in sync with external systems efficiently by only processing records which have been created or modified during a given timeframe. By _incrementally_ processing new or modified records it possible to maintain a low level of latency between a Knack application and its dependents without placing undue demand on the Knack application stack, even when managing large datasets.
 
-Incremental loading is made possible by referencing a record's timestamp throughout the pipleine. Specifically:
+Incremental loading is made possible by referencing a record's timestamp throughout the pipeline. Specifically:
 
-- The [Knack configuration file](#knack-config) allows for a `modified_date_field`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in funcionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
+- The [Knack configuration file](#knack-config) allows for a `modified_date_field`. This field must be exposed in the source container and must be configured in the Knack application to reliably maintain the datetime at which a record was last modified. Note that Knack does not have built-in functionality to achieve this—it is incumbent upon the application builder to configure app rules accordingly.
 
 - The [Postgres data store](#postgres-data-store) relies on a stored procedure to maintain an `updated_at` timestamp which is set to the current datetime whenever a record is created or modified.
 
@@ -96,7 +96,7 @@ All operations within the `api` schema that is exposed via PostgREST must be aut
 
 ### App names
 
-Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used conistently, because they are used to identify the correct Knack auth tokens and ETL configuration parameters in `services/config/knack.py`. Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
+Throughout these modules we use predefined names to refer to Knack applications. We pull these names out of thin air, but they must be used consistently, because they are used to identify the correct Knack auth tokens and ETL configuration parameters in `services/config/knack.py`. Whenever you see a variable or CLI argument named `app_name`, we're referring to these pre-defined app names.
 
 | **App name**         | **Description**                                                                    |
 | -------------------- | ---------------------------------------------------------------------------------- |
@@ -121,7 +121,7 @@ The supported environmental variables for using these scripts are listed below. 
 - `AWS_ACCESS_ID`: Only needed for `backup_socrata.py`, AWS access credentials with read/write/delete privileges for the S3 bucket
 - `AWS_SECRET_ACCESS_KEY`: Only needed for `backup_socrata.py`, AWS access credentials with read/write/delete privileges for the S3 bucket
 
-If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. For development purpsoses, this command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
+If you'd like to run locally in Docker, create an [environment file](https://docs.docker.com/compose/env-file/) and pass it to `docker run`. For development purposes, this command also overwrites the contents of the container's `/app` directory with your local copy of the repo:
 
 ```
 $ docker run -it --rm --env-file env_file -v <absolute-path-to-this-repo>:/app atddocker/atd-knack-services:production services/records_to_socrata.py -a data-tracker -c object_11
@@ -148,7 +148,7 @@ CONFIG = {
 - `scene` (`str`): If the container is a Knack view, this is required, and refers to the Knack scene ID which contains the view.
 - `modified_date_field` (`str`, optional): A knack field ID (e.g., `field_123`) which defines when each record was last modified. If provided, this field will be used to filter records for each ETL run. If not provided, all records will always be fetched/processed from the source Knack container.
 - `description` (`str`, optional): a description of what kind of record this container holds.
-- `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publshing to Socrata.
+- `socrata_resource_id` (`str`, optional): The Socrata resource ID of the destination dataset. This is required if publishing to Socrata.
 - `location_field_id` (`str`, optional): The field key which will be translated to Socrata "location" field types or an ArcGIS Online point geometry.
 - `service_id` (`str`, optional): The ArcGIS Online feature service identifier. Required to publish to ArcGIS Online.
 - `layer_id` (`int`, optional): The ArcGIS Online layer ID of the the destination layer in the feature service.
@@ -162,7 +162,7 @@ CONFIG = {
 ### Load app metadata to Postgres
 
 Use `metadata_to_postgrest.py` to load an application's metadata to Postgres. Metadata
-will be proessed for the app ID provided in the `KNACK_APP_ID` environmental variable.
+will be processed for the app ID provided in the `KNACK_APP_ID` environmental variable.
 
 To avoid repeated API calls, Knack app metadata is stored alongside records in the Postgres database. This means that schema changes in your Knack app need to be kept in sync with Postgres in order to ensure that records published to downstream systems reflect these changes. As such, you should update the Knack metadata stored in Postgres whenever you make a schema change to a container. After updating the metadata, you should also run a full replacement of the Knack record data from Knack to Postgres, and from Postgres to any downstream recipients. See also [Dealing with Schema Changes](#dealing-with-schema-changes).
 
@@ -374,6 +374,49 @@ FIELD_MAPS = {
 - `--app-name-dest, -dest` (`str`, required): the name of the destination Knack application
 - `--date, -d` (`str`, optional): an ISO-8601-compliant date string. If no timezone is provided, GMT is assumed. Only records which were modified at or after this date will be processed. If excluded, all records will be processed.
 
+### Purchase Request Record Copier
+
+This script creates a copy of a record along with a copy of its child items, initially configured for the finance-purchasing app.
+This allows users to flag records they want copied and this script will check a public API view of a queue of flagged records.
+
+#### Configuration
+
+The main container for this is a public API view table created which contains the fields that are to be copied to the newly
+generated record. 
+
+Unique to this service is:
+- `requester_field_id` is the requester of this record that the `copied_by_field_id` will be overwritten by
+- `copy_field_id` is a True/False datatype that flags records as needing to be copied.
+- `unique_id_field_id` is an autoincrement field that serves as a unique ID
+- `pr_items` is a child table which will be queried for a matching parent unique ID and copied as well.
+- `pr_field_id` is the field unique ID of the parent record
+- `pr_connection_field_id` is a connection field type which relates the child record to its parent purchase request.
+
+```python
+ CONFIG =
+    "finance-purchasing": {
+        "view_211": {
+            "description": "Purchase Requests",
+            "scene": "scene_84",
+            "object": "object_1",
+            "requester_field_id": "field_12",
+            "copied_by_field_id": "field_283",
+            "copy_field_id": "field_268",
+            "unique_id_field_id": "field_11",
+            "pr_items": {
+                    "object": "object_4",
+                    "pr_field_id": "field_269",
+                    "pr_connection_field_id": "field_20",
+                },
+        },
+    }
+```
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the object or view key of the source container
+
 ### Knack Maintenance: 311 SR Auto Asset Assign
 
 This script pulls data from Knack in a queue of 311 SRs that are in `AUTO_ASSET_ASSIGN_STATUS` of `ready_to_process`. It then uses a supplied `asset` argument and AGOL layer configuration to find the asset(s) nearby the SR (`CSR_Y_VALUE`, `CSR_X_VALUE`). It should be noted that this script currently only assigns signal asset IDs to CSRs.
@@ -530,7 +573,7 @@ CONFIG =
 
 Propagates updates to secondary-to-primary signal relationships. This script updates the `SECONDARY_SIGNALS` field
 when changes are detected in the `PRIMARY_SIGNAL` field to reduce overhead of needing AMD staff needing to maintain both
-sides of this primary-secondary relationship and prevents de-sycning.
+sides of this primary-secondary relationship and prevents de-syncing.
 
 #### Configuration
 

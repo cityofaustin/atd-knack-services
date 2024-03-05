@@ -351,6 +351,20 @@ CONFIG = {
         },
     },
     "finance-purchasing": {
+        "view_211": {
+            "description": "Purchase Requests",
+            "scene": "scene_84",
+            "object": "object_1",
+            "requester_field_id": "field_12",
+            "copied_by_field_id": "field_283",
+            "copy_field_id": "field_268",
+            "unique_id_field_id": "field_11",
+            "pr_items": {
+                    "object": "object_4",
+                    "pr_field_id": "field_269",
+                    "pr_connection_field_id": "field_20",
+                },
+        },
         "view_788": {
             "description": "Inventory items",
             "scene": "scene_84",
