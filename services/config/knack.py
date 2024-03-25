@@ -41,16 +41,18 @@ CONFIG = {
             "modified_date_field": "field_2563",
             "socrata_resource_id": "p7pt-re4k",
         },
-        "view_2362":{
+        "view_2362": {
             "description": "MMC Issue Auto Assign Queue",
             "scene": "scene_514",
             "modified_date_field": "field_1385",
-            "object": "object_83", # Needed for sr_asset_assign
-            "assign_status_field_id": "field_2813", # Needed for sr_asset_assign
-            "asset_type_field_id": "field_1649",# Needed for sr_asset_assign
-            "connection_field_keys": {"signals": "field_1367"}, # Needed for sr_asset_assign
-            "x_field": "field_1402", # CSR_X_VALUE
-            "y_field": "field_1401", # CSR_Y_VALUE
+            "object": "object_83",  # Needed for sr_asset_assign
+            "assign_status_field_id": "field_2813",  # Needed for sr_asset_assign
+            "asset_type_field_id": "field_1649",  # Needed for sr_asset_assign
+            "connection_field_keys": {
+                "signals": "field_1367"
+            },  # Needed for sr_asset_assign
+            "x_field": "field_1402",  # CSR_X_VALUE
+            "y_field": "field_1401",  # CSR_Y_VALUE
         },
         "view_2892": {
             "description": "MMC issues",
@@ -146,8 +148,8 @@ CONFIG = {
             "modified_date_field": "field_508",
             "location_field_id": "field_182",
             "service_id": "66f4b5b0339d4275b64f265dd59727e5",
-            "update_processed_field":"field_1357", # Needed for location_updater
-            "object": "object_11", # Needed for location_updater
+            "update_processed_field": "field_1357",  # Needed for location_updater
+            "object": "object_11",  # Needed for location_updater
             "layer_id": 0,
             "item_type": "layer",
         },
@@ -175,7 +177,7 @@ CONFIG = {
             "service_id": "ebde70df086942c286dcf9f3f3449f2f",
             "layer_id": 0,
             "item_type": "layer",
-            "socrata_resource_id": "8whb-sg4d"
+            "socrata_resource_id": "8whb-sg4d",
         },
         "view_4027": {
             "description": "School zone beacon zones",
@@ -290,7 +292,7 @@ CONFIG = {
             "layer_id": 0,
             "item_type": "layer",
             "location_field_id": "field_3300",
-            "socrata_resource_id": "jji9-2k5d"
+            "socrata_resource_id": "jji9-2k5d",
         },
         "view_3107": {
             "description": "Signs work orders",
@@ -360,10 +362,10 @@ CONFIG = {
             "copy_field_id": "field_268",
             "unique_id_field_id": "field_11",
             "pr_items": {
-                    "object": "object_4",
-                    "pr_field_id": "field_269",
-                    "pr_connection_field_id": "field_20",
-                },
+                "object": "object_4",
+                "pr_field_id": "field_269",
+                "pr_connection_field_id": "field_20",
+            },
         },
         "view_788": {
             "description": "Inventory items",
@@ -393,5 +395,27 @@ CONFIG = {
             "modified_date_field": "field_550",
             "socrata_resource_id": "vz5j-8n8f",
         }
-    }
+    },
+    "hr-manager": {
+        "view_684": {
+            "description": "TPW Employees",
+            "scene": "scene_321",
+            "modified_date_field": "field_265",
+            "dest_apps": {
+                "tpw-hire": {
+                    "container": "view_148",
+                    "description": "TPW Employees",
+                    "modified_date_field": "field_179",
+                    "object": "object_16",
+                },
+            },
+        }
+    },
+    "tpw-hire": {
+        "view_148": {
+            "description": "TPW Employees",
+            "scene": "scene_69",
+            "modified_date_field": "field_179",
+        }
+    },
 }
