@@ -170,10 +170,6 @@ To avoid repeated API calls, Knack app metadata is stored alongside records in t
 $ python metadata_to_postgrest.py
 ```
 
-#### CLI arguments
-
-- `--app-name, -a` (`str`, required): the name of the source Knack application
-
 ### Load knack records to Postgres
 
 Use `records_to_postgrest.py` to incrementally load data from a Knack container (an object or view) to the `knack` table in Postgres.

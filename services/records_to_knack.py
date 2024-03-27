@@ -14,7 +14,7 @@ def format_filter_date(date_from_args):
 
 
 def get_pks(field_map, app_name_dest):
-    """ return the src and destination field name of the primary key """
+    """return the src and destination field name of the primary key"""
     pk_field = [f for f in field_map if f.get("primary_key")]
     try:
         assert len(pk_field) == 1
@@ -26,12 +26,12 @@ def get_pks(field_map, app_name_dest):
 
 
 def create_mapped_record(record, field_map, app_name_dest):
-    """Map the data from the source Knack app to the destination app schema """
+    """Map the data from the source Knack app to the destination app schema"""
     mapped_record = {}
     for field in field_map:
         field_src = field["src"]
         if field_src:
-            """ Note that a default value in the field map *never* overrides a value in
+            """Note that a default value in the field map *never* overrides a value in
             the src data unless the src field ID is None"""
             val = record.get(field_src)
         else:
@@ -44,9 +44,7 @@ def create_mapped_record(record, field_map, app_name_dest):
 
         field_dest = field[app_name_dest]
         handler_func = field.get("handler")
-        mapped_record[field_dest] = (
-            val if not handler_func else handler_func(val)
-        )
+        mapped_record[field_dest] = val if not handler_func else handler_func(val)
 
     return mapped_record
 
@@ -54,6 +52,19 @@ def create_mapped_record(record, field_map, app_name_dest):
 def is_equal(rec_src, rec_dest, keys):
     tests = [rec_src[key] == rec_dest[key] for key in keys]
     return all(tests)
+
+
+def remove_raw_tags(records):
+    """
+    Removes "_raw" from field names so special compound datatypes such as Persons or Emails can be
+    left in their original format and then passed on to the destination Knack app.
+    """
+    fields_to_rename = [f for f in list(records[0].keys()) if "_raw" in f]
+    if fields_to_rename:
+        for rec in records:
+            for f in fields_to_rename:
+                rec[f.replace("_raw", "")] = rec.pop(f)
+    return records
 
 
 def handle_records(data_src, data_dest, field_map, app_name_dest):
@@ -84,6 +95,7 @@ def handle_records(data_src, data_dest, field_map, app_name_dest):
                 break
         if not matched:
             todos.append(mapped_record)
+    todos = remove_raw_tags(todos)
     return todos
 
 
