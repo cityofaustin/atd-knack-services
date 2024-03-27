@@ -56,7 +56,8 @@ def is_equal(rec_src, rec_dest, keys):
 
 def remove_raw_tags(records):
     """
-    Removes "_raw" from field names, if they exist.
+    Removes "_raw" from field names so special compound datatypes such as Persons or Emails can be
+    left in their original format and then passed on to the destination Knack app.
     """
     fields_to_rename = [f for f in list(records[0].keys()) if "_raw" in f]
     if fields_to_rename:
