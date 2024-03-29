@@ -1,11 +1,5 @@
-FROM python:3.8-slim
-
-# Copy our own application
-WORKDIR /app
+FROM python:3.12-slim-bookworm
+RUN apt-get update && apt-get install -y build-essential
 COPY . /app/atd-knack-services
-
-RUN chmod -R 755 /app/*
-
-# # Proceed to install the requirements...do
-RUN cd /app/atd-knack-services && apt-get update && \
-    pip install -r requirements_production.txt
+WORKDIR /app/atd-knack-services
+RUN pip install -r requirements_production.txt
