@@ -41,16 +41,6 @@ def handle_strip(value):
         return value
 
 
-def handle_no_choice_to_empty_string(value):
-    """
-    Useful for going from a single choice field to a short text datatype.
-    If no option is picked for a single choice the API will return None.
-    The short text field will return an empty string.
-    """
-    if not value:
-        return ""
-
-
 FIELD_MAPS = {
     "data-tracker": {
         "view_197": [
@@ -213,7 +203,6 @@ FIELD_MAPS = {
             {
                 "src": "field_251",
                 "tpw-hire": "field_165",
-                "handler": handle_no_choice_to_empty_string,
             },
         ]
     },
