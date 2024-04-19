@@ -225,6 +225,12 @@ CONFIG = {
             # before we switch this on
             # "socrata_resource_id": "f6qu-b7zb"
         },
+        "view_3887": {
+            "description": "Preventative maintenance work orders",
+            "scene": "scene_1545",
+            "modified_date_field": "field_4535",
+            "socrata_resource_id": "mudg-bik3",
+        }
     },
     "signs-markings": {
         "view_3099": {
