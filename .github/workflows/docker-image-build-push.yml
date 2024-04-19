@@ -29,6 +29,7 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/atd-knack-services:production
             ${{ secrets.DOCKER_USERNAME }}/atd-knack-services:staging
             ${{ secrets.DOCKER_USERNAME }}/atd-knack-services:latest
+          platforms: linux/amd64,linux/arm64
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
