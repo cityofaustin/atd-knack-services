@@ -346,17 +346,23 @@ CONFIG = {
         },
         # Similarly views 3526 and 3527 push to the same socrata dataset (see note above)
         "view_3526": {
-            "description": "Signs reimburesement tracking",
+            "description": "Signs reimbursement tracking",
             "scene": "scene_1249",
             "modified_date_field": "field_4000",
             "socrata_resource_id": "pma8-yy5k",
         },
         "view_3527": {
-            "description": "Markings reimburesement tracking",
+            "description": "Markings reimbursement tracking",
             "scene": "scene_1249",
             "modified_date_field": "field_4000",
             "socrata_resource_id": "pma8-yy5k",
         },
+        "view_3992": {
+            "description": "311 CSR issues",
+            "scene": "scene_1249",
+            "modified_date_field": "field_3087",
+            "socrata_resource_id": "ji6n-8jff",
+        }
     },
     "finance-purchasing": {
         "view_211": {
