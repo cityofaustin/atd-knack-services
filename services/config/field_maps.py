@@ -211,8 +211,8 @@ FIELD_MAPS = {
             },
             # Supervisor email
             {
-                "src": "field_365",
-                "tpw-hire": "field_176",
+                "src": "field_104.field_18_raw",
+                "tpw-hire": "field_176_raw",
             },
             # Title
             {
