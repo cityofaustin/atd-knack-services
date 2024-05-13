@@ -160,7 +160,11 @@ def main():
     # identify new/changed records and map to destination Knack app schema
     todos = handle_records(data_src, data_dest, field_map, app_name_dest)
 
-    logger.info(f"Updating/creating {len(todos)} records in the destination app.")
+    updates = sum([bool(rec.get("id")) for rec in todos])
+    creates = len(todos) - updates
+
+    logger.info(f"Updating {updates} records in the destination app.")
+    logger.info(f"Creating {creates} records in the destination app.")
 
     if not todos:
         return

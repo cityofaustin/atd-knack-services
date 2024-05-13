@@ -204,6 +204,26 @@ FIELD_MAPS = {
                 "src": "field_251",
                 "tpw-hire": "field_165",
             },
+            # Supervisor
+            {
+                "src": "field_104.field_17_raw",
+                "tpw-hire": "field_175_raw",
+            },
+            # Supervisor email
+            {
+                "src": "field_104.field_18_raw",
+                "tpw-hire": "field_176_raw",
+            },
+            # Title
+            {
+                "src": "field_230",
+                "tpw-hire": "field_177",
+            },
+            # Banner Division
+            {
+                "src": "field_250",
+                "tpw-hire": "field_178",
+            },
         ]
     },
 }
