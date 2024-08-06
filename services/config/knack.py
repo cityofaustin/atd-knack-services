@@ -266,7 +266,7 @@ CONFIG = {
         "view_3096": {
             "description": "Markings work order attachments",
             "scene": "scene_1249",
-            "modified_date_field": "field_2407",
+            "modified_date_field": "field_2568",
             "service_id": "a9f5be763a67442a98f684935d15729b",
             "layer_id": 0,
             "item_type": "table",
@@ -275,7 +275,7 @@ CONFIG = {
         "view_3103": {
             "description": "Markings asset specification actuals",
             "scene": "scene_1249",
-            "modified_date_field": "field_3365",
+            "modified_date_field": "field_2567",
             "service_id": "a9f5be763a67442a98f684935d15729b",
             "layer_id": 1,
             "item_type": "table",
