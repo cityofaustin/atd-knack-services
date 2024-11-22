@@ -107,7 +107,7 @@ CONFIG = {
             "item_type": "layer",
         },
         "view_1333": {
-            "description": "Detectors",
+            "description": "Traffic Detectors",
             "scene": "scene_468",
             "modified_date_field": "field_1533",
             "socrata_resource_id": "qpuw-8eeb",
@@ -115,6 +115,15 @@ CONFIG = {
             "service_id": "47d17ff3ce664849a16b9974979cd12e",
             "layer_id": 0,
             "item_type": "layer",
+        },
+        "view_4274": {
+            "description": "Traffic Detectors Weekly Snapshot",
+            "scene": "scene_468",
+            "modified_date_field": "field_1533",
+            "socrata_resource_id": "g939-dyvz",
+            "location_field_id": "field_182",
+            "append_timestamps_socrata": {"key": "published_date"},
+            "no_replace_socrata": True,
         },
         "view_540": {
             "description": "Travel Sensors",
