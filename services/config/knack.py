@@ -439,4 +439,60 @@ CONFIG = {
             "modified_date_field": "field_179",
         }
     },
+    "development-services": {
+        "view_2814": {
+            "description": "TIA mitigations",
+            "scene": "scene_787",
+            "modified_date_field": "field_491",
+            "socrata_resource_id": "mvy5-atr5",
+        },
+        "view_2926": {
+            "description": "TS cases",
+            "scene": "scene_619",
+            "modified_date_field": "field_338",
+            "socrata_resource_id": "c8zb-em9a",
+        },
+        "view_2919": {
+            "description": "TS scope cycles",
+            "scene": "scene_832",
+            "modified_date_field": "field_509",
+            "socrata_resource_id": "wvna-ucv7",
+        },
+        "view_2920": {
+            "description": "TS submission cycles",
+            "scene": "scene_833",
+            "modified_date_field": "field_229",
+            "socrata_resource_id": "v6ib-ev9u",
+        },
+        "view_2921": {
+            "description": "SIF formal assessments",
+            "scene": "scene_834",
+            "modified_date_field": "field_882",
+            "socrata_resource_id": "v59q-edrj",
+        },
+        "view_2924": {
+            "description": "SIF formal reviews",
+            "scene": "scene_837",
+            "modified_date_field": "field_1749",
+            "socrata_resource_id": "f6bi-75d4",
+        },
+        "view_2922": {
+            "description": "SWF Final assessments",
+            "scene": "scene_835",
+            "modified_date_field": "field_882",
+            "socrata_resource_id": "u7w8-4hav",
+        },
+        "view_2925": {
+            "description": "SWF Final reviews",
+            "scene": "scene_838",
+            "modified_date_field": "field_1749",
+            "socrata_resource_id": "y5pw-nh8x",
+        },
+        "view_2923": {
+            "description": "TIA determinations",
+            "scene": "scene_836",
+            "modified_date_field": "field_1374",
+            "socrata_resource_id": "289q-zknx",
+        },
+    }
 }
