@@ -450,7 +450,7 @@ CONFIG = {
             "description": "TS cases",
             "scene": "scene_619",
             "modified_date_field": "field_338",
-            "socrata_resource_id": "c8zb-em9a",
+            "socrata_resource_id": "sjcw-u8cb",
         },
         "view_2919": {
             "description": "TS scope cycles",
