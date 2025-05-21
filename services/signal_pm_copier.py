@@ -57,6 +57,9 @@ def main(args):
 
     # 1. Check for work orders to be copied.
     pm_records = app.get(container)
+    if not pm_records:
+        logger.info("No PM records need to be copied, did nothing.")
+        return 0
     pm_field_names = generate_field_name_lookup(pm_records[0])
     logger.info(f"{len(pm_records)} PM records to be copied.")
 
