@@ -612,6 +612,39 @@ SECONDARY_SIGNALS = {
 
 The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
 
+### Knack maintenance: Signal Preventative Maintenance Copier 
+
+Copies Preventative Maintenance (PM) records from primary signals to secondary signals.
+
+#### Configuration
+
+`app-name`,`view`, `scene`, and `object` of the preventative maintenance object is required. Along with the container of
+traffic signals and the `secondary_signals_field` that ties primary signals to secondary signals.
+
+```python
+CONFIG = {
+    "view_4284": {
+            "description": "Preventative maintenance work orders",
+            "scene": "scene_416",
+            "object": "object_222",
+            "signals_container": "view_197",
+            "secondary_signals_field": "field_1329",  # Knack field name of SECONDARY_SIGNALS in the signals object
+            "signal_object_id": "object_12",
+        }
+}
+```
+
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+- `--container, -c` (`str`, required): the view key of the PM container
+
+## Utils (`/services/utils`)
+
+The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
+
+
 ## Common Tasks
 
 ### Configuring a Knack container

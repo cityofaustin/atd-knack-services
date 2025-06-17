@@ -239,6 +239,14 @@ CONFIG = {
             "scene": "scene_1545",
             "modified_date_field": "field_4535",
             "socrata_resource_id": "mudg-bik3",
+        },
+        "view_4284": {
+            "description": "Preventative maintenance work orders that need to be copied",
+            "scene": "scene_416",
+            "object": "object_222",
+            "signals_container": "view_197",
+            "secondary_signals_field": "field_1329",  # Knack field name of SECONDARY_SIGNALS in the signals object
+            "signal_object_id": "object_12",
         }
     },
     "signs-markings": {
