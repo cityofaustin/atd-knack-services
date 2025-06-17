@@ -56,6 +56,7 @@ def main(args):
     app = knackpy.App(app_id=APP_ID, api_key=API_KEY)
 
     # 1. Check for work orders to be copied.
+    # Note that this view is already pre-filtered in Knack to PM records that need to be copied.
     pm_records = app.get(container)
     if not pm_records:
         logger.info("No PM records need to be copied, did nothing.")
@@ -97,7 +98,9 @@ def main(args):
     # Grabbing some useful knack field names
     copied_field_name = find_knack_field_name("COPIED_TO_SECONDARY", pm_field_names)
     signal_field_name = find_knack_field_name("signal", pm_field_names)
-    modified_date_field_name = find_knack_field_name("MODIFIED_DATE", signal_field_names)
+    modified_date_field_name = find_knack_field_name(
+        "MODIFIED_DATE", signal_field_names
+    )
 
     knack_todos = []
     for pm in pm_records:
@@ -119,17 +122,24 @@ def main(args):
                     new_rec[key] = pm.data[f"{key}_raw"]
                 elif pm.fields[key].field_def.type in ["connection"]:
                     new_rec[key] = [entry["id"] for entry in pm.data[f"{key}_raw"]]
-                elif pm.fields[key].field_def.type in ["auto_increment", "concatenation"]:
+                elif pm.fields[key].field_def.type in [
+                    "auto_increment",
+                    "concatenation",
+                ]:
                     continue
                 else:
                     new_rec[key] = pm.data[key]
             # Tagging the signal with the secondary signal's knack record ID
             new_rec[signal_field_name] = secondary["id"]
-            knack_todos.append({"method": "create", "obj": config["object"], "data": new_rec})
+            knack_todos.append(
+                {"method": "create", "obj": config["object"], "data": new_rec}
+            )
 
             # Update the modified date of the secondary traffic signal, so the data is refreshed on the ODP.
             data = {"id": secondary["id"], modified_date_field_name: current_date}
-            knack_todos.append({"method": "update", "obj": config["signal_object_id"], "data": data})
+            knack_todos.append(
+                {"method": "update", "obj": config["signal_object_id"], "data": data}
+            )
 
     # Sending updates/creates to knack
     logger.info(f"Updating/creating {len(knack_todos)} knack records")
@@ -137,7 +147,11 @@ def main(args):
     for knack_job in knack_todos:
         if count % 10 == 0:
             logger.info(f"Uploading record {count} of {len(knack_todos)}")
-        res = record_to_knack(record=knack_job["data"], object_id=knack_job["obj"], method=knack_job["method"])
+        res = record_to_knack(
+            record=knack_job["data"],
+            object_id=knack_job["obj"],
+            method=knack_job["method"],
+        )
         count += 1
 
 
