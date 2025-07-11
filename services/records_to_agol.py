@@ -130,19 +130,13 @@ def main():
         Completely replace destination data. arcgis does have layer.manager.truncate()
         method, but this method is not supported on the parent layer of parent-child
         relationships. So we truncate the layer by deleting with a "where 1=1"
-        expression. We use the "future" option to avoid request timeouts on large
-        datasets.
+        expression. 
         """
         logger.info("Deleting all features...")
         res = resilient_layer_request(
-            layer.delete_features, {"where": "1=1", "future": True}
+            layer.delete_features, {"where": "1=1"}
         )
-        # returns a "<Future>" response class which does not appear to be documented
-        while res._state != "FINISHED":
-            logger.info(f"Response state: {res._state}. Sleeping for 1 second")
-            logger.info(res._state)
-            time.sleep(1)
-        utils.agol.handle_response(res._result)
+        utils.agol.handle_response(res)
 
     else:
         """
