@@ -495,5 +495,11 @@ CONFIG = {
             "modified_date_field": "field_1374",
             "socrata_resource_id": "289q-zknx",
         },
+        "view_3187": {
+            "description": "SIF Encumbrance Projects",
+            "scene": "scene_947",
+            "modified_date_field": "field_2757",
+            "socrata_resource_id": "f8dt-5n4w",
+        }
     }
 }
