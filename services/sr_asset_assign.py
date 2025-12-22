@@ -81,7 +81,7 @@ def point_in_poly(service_name, layer_id, params):
         params["spatialRel"] = "esriSpatialRelIntersects"
 
     data = agol_api_handler(query_url, params)
-    return data.json()
+    return data
 
 
 def asset_filter(field, value):
