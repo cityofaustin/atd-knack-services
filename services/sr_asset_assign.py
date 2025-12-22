@@ -169,9 +169,6 @@ def main(args):
     container = args.container
     logger.info(args)
 
-    # Get AGOL Token
-    token_agol = create_agol_login_token()
-
     # Getting SR data from Knack
     config = CONFIG[app_name][container]
     modified_date_field = config["modified_date_field"]
@@ -181,6 +178,9 @@ def main(args):
     if len(data) == 0:
         logger.info("No SRs waiting in queue to be processed, doing nothing.")
         return 0
+
+    # Get AGOL Token
+    token_agol = create_agol_login_token()
 
     status_field = config["assign_status_field_id"]
     connected_field = config["connection_field_keys"][args.asset]
