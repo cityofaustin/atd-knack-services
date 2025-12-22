@@ -20,6 +20,22 @@ KNACK_API_USER_EMAIL = os.getenv("KNACK_API_USER_EMAIL")
 KNACK_API_USER_PW = os.getenv("KNACK_API_USER_PW")
 
 
+def agol_api_handler(request_url, params):
+    """
+    Sends a request to the ArcGIS API and checks for errors.
+    AGOL likes to return 200 every time, even if there is a 400 error.
+    """
+    response = requests.post(url=request_url, data=params)
+    response.raise_for_status()
+    if "error" in response.json():
+        err = response.json()["error"]
+        raise RuntimeError(
+            f"AGOL API error {err.get('code')}: {err.get('message')} "
+            f"- {', '.join(err.get('details', []))}"
+        )
+    return response.json()
+
+
 def create_agol_login_token():
     """
     Returns an auth token from AGOL, to hopefully reduce the risk of rate-limiting
@@ -34,8 +50,8 @@ def create_agol_login_token():
         "f": "json",
         "referer": f"https://{organizationName}.maps.arcgis.com/",
     }
-    res = requests.post(url=login_url, data=params)
-    return res.json()["token"]
+    data = agol_api_handler(login_url, params)
+    return data["token"]
 
 
 def create_knack_login_token():
@@ -63,9 +79,9 @@ def point_in_poly(service_name, layer_id, params):
     query_url = f"https://services.arcgis.com/0L95CJ0VTaxqcmED/ArcGIS/rest/services/{service_name}/FeatureServer/{layer_id}/query"
     if "spatialRel" not in params:
         params["spatialRel"] = "esriSpatialRelIntersects"
-    res = requests.get(query_url, params=params)
-    res.raise_for_status()
-    return res.json()
+
+    data = agol_api_handler(query_url, params)
+    return data.json()
 
 
 def asset_filter(field, value):
