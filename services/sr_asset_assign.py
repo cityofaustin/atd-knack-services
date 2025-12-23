@@ -20,12 +20,12 @@ KNACK_API_USER_EMAIL = os.getenv("KNACK_API_USER_EMAIL")
 KNACK_API_USER_PW = os.getenv("KNACK_API_USER_PW")
 
 
-def agol_api_handler(request_url, params):
+def agol_api_handler(request_url, params=None, data=None):
     """
     Sends a request to the ArcGIS API and checks for errors.
     AGOL likes to return 200 every time, even if there is a 400 error.
     """
-    response = requests.post(url=request_url, data=params)
+    response = requests.post(url=request_url, params=params, data=data)
     response.raise_for_status()
     if "error" in response.json():
         err = response.json()["error"]
@@ -43,14 +43,14 @@ def create_agol_login_token():
     """
     organizationName = "austin"
     login_url = f"https://{organizationName}.maps.arcgis.com/sharing/generateToken"
-    params = {
+    data = {
         "username": AGOL_USER,
         "password": AGOL_PASS,
         "expiration": 60 * 4,  # In minutes
         "f": "json",
         "referer": f"https://{organizationName}.maps.arcgis.com/",
     }
-    data = agol_api_handler(login_url, params)
+    data = agol_api_handler(request_url=login_url, data=data)
     return data["token"]
 
 
@@ -80,7 +80,7 @@ def point_in_poly(service_name, layer_id, params):
     if "spatialRel" not in params:
         params["spatialRel"] = "esriSpatialRelIntersects"
 
-    data = agol_api_handler(query_url, params)
+    data = agol_api_handler(request_url=query_url, params=params)
     return data
 
 
@@ -175,6 +175,9 @@ def main(args):
     kwargs = {"scene": config["scene"], "view": args.container}
     data = knackpy.api.get(app_id=APP_ID, api_key=API_KEY, **kwargs)
 
+    # ignore records that have a null location data
+    data = [d for d in data if d[config["x_field"]] and d[config["y_field"]]]
+
     if len(data) == 0:
         logger.info("No SRs waiting in queue to be processed, doing nothing.")
         return 0
@@ -190,52 +193,47 @@ def main(args):
     token_knack = None
 
     for record in data:
-        if (
-            record[config["x_field"]] and record[config["y_field"]]
-        ):  # ignore records that have a null location data
-            point = [
-                record[config["x_field"]],
-                record[config["y_field"]],
-            ]
-            params = get_params(layer["layer"], point, token_agol)
-            res = point_in_poly(
-                layer["layer"]["service_name"], layer["layer"]["layer_id"], params
+        point = [
+            record[config["x_field"]],
+            record[config["y_field"]],
+        ]
+        params = get_params(layer["layer"], point, token_agol)
+        res = point_in_poly(
+            layer["layer"]["service_name"], layer["layer"]["layer_id"], params
+        )
+        # we have to manually check for response errors. The API returns `200` regardless
+        if res.get("error"):
+            raise Exception(str(res))
+        if not res["features"]:
+            # Only need to send the status no_asset_found
+            record[status_field] = "no_asset_found"
+            record[config["asset_type_field_id"]] = "No Asset / Unkown Location / Other"
+            record[connected_field] = ""
+            logger.info(f"No Assets found for ID: {record['id']}.")
+        elif len(res["features"]) != 1:
+            # Ignore records with multiple assets found
+            logger.info(
+                f"Multiple Assets found for ID: {record['id']}, skipping updating this record."
             )
-            # we have to manually check for response errors. The API returns `200` regardless
-            if res.get("error"):
-                raise Exception(str(res))
-            if not res["features"]:
-                # Only need to send the status no_asset_found
-                record[status_field] = "no_asset_found"
-                record[
-                    config["asset_type_field_id"]
-                ] = "No Asset / Unkown Location / Other"
-                record[connected_field] = ""
-                logger.info(f"No Assets found for ID: {record['id']}.")
-            elif len(res["features"]) != 1:
-                # Ignore records with multiple assets found
-                logger.info(
-                    f"Multiple Assets found for ID: {record['id']}, skipping updating this record."
-                )
-                continue
-            if len(res["features"]) == 1:
-                logger.info(f"One Asset found for ID: {record['id']}.")
-                # assumes AGOL layer has 'id' column which holds each record's Knack ID
-                record[connected_field] = res["features"][0]["attributes"]["id"]
-                record[config["asset_type_field_id"]] = layer["display_name"]
+            continue
+        if len(res["features"]) == 1:
+            logger.info(f"One Asset found for ID: {record['id']}.")
+            # assumes AGOL layer has 'id' column which holds each record's Knack ID
+            record[connected_field] = res["features"][0]["attributes"]["id"]
+            record[config["asset_type_field_id"]] = layer["display_name"]
 
-            # Get knack token if we haven't fetched one yet
-            if not token_knack:
-                token_knack = create_knack_login_token()
+        # Get knack token if we haven't fetched one yet
+        if not token_knack:
+            token_knack = create_knack_login_token()
 
-            # Updating a record in Knack
-            record = {key: record[key] for key in output_keys}
-            # Add modified date field for every record:
-            record[modified_date_field] = local_timestamp()
-            try:
-                submit_knack_form(token_knack, record)
-            except Exception as e:
-                logger.info(e.response.text)
+        # Updating a record in Knack
+        record = {key: record[key] for key in output_keys}
+        # Add modified date field for every record:
+        record[modified_date_field] = local_timestamp()
+        try:
+            submit_knack_form(token_knack, record)
+        except Exception as e:
+            logger.info(e.response.text)
 
 
 if __name__ == "__main__":
