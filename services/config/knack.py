@@ -247,6 +247,12 @@ CONFIG = {
             "signals_container": "view_197",
             "secondary_signals_field": "field_1329",  # Knack field name of SECONDARY_SIGNALS in the signals object
             "signal_object_id": "object_12",
+        },
+        "view_4620": {
+            "description": "Traffic count and data collection requests",
+            "scene": "scene_1872",
+            "modified_date_field": "field_2812",
+            "socrata_resource_id": "7qcz-v6sa",
         }
     },
     "signs-markings": {
