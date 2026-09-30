@@ -253,6 +253,19 @@ CONFIG = {
             "scene": "scene_1872",
             "modified_date_field": "field_2812",
             "socrata_resource_id": "7qcz-v6sa",
+        },
+        "view_5039": {
+            "description": "AMD traffic signals completed work",
+            "scene": "scene_2037",
+            "modified_date_field": "field_4193",
+            "socrata_resource_id": "6drc-t4jn",
+        },
+        "view_5040": {
+            "description": "AMD project requests",
+            "scene": "scene_2038",
+            "modified_date_field": "field_4682",
+            "socrata_resource_id": "cs6c-b6bz"
+
         }
     },
     "signs-markings": {
