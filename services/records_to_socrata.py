@@ -41,7 +41,7 @@ def bools_to_strings(records, boolean_columns):
     Args:
         records (list): a list of record dictionaries
         boolean_columns (_type_): the boolean columns in Socrata
-    
+
     Returns:
         None: records are updated in-place
     """
@@ -68,16 +68,30 @@ def remove_unknown_fields(payload, client_metadata):
     """
     payload_field_names = payload[0].keys()
     column_names = [c["fieldName"] for c in client_metadata["columns"]]
-    unknown_fields = [
+    fields_not_in_socrata = [
         field_name
         for field_name in payload_field_names
         if field_name not in column_names
     ]
-    if unknown_fields:
-        logger.info(f"Record field names not in Socrata: {unknown_fields}")
+
+    fields_not_in_knack = [
+        field_name
+        for field_name in column_names
+        if field_name not in payload_field_names
+    ]
+
+    if fields_not_in_socrata:
+        logger.warning(
+            f"Knack record field names not matching a field name in Socrata: {fields_not_in_socrata}"
+        )
         for record in payload:
-            for unknown_field in unknown_fields:
+            for unknown_field in fields_not_in_socrata:
                 record.pop(unknown_field, None)
+
+    if fields_not_in_knack:
+        logger.warning(
+            f"Socrata field names not matching a Knack field name: {fields_not_in_knack}"
+        )
 
 
 def find_field_def(field_defs, field_id):
