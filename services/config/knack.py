@@ -248,12 +248,6 @@ CONFIG = {
             "secondary_signals_field": "field_1329",  # Knack field name of SECONDARY_SIGNALS in the signals object
             "signal_object_id": "object_12",
         },
-        "view_4620": {
-            "description": "Traffic count and data collection requests",
-            "scene": "scene_1872",
-            "modified_date_field": "field_2812",
-            "socrata_resource_id": "7qcz-v6sa",
-        },
         "view_5039": {
             "description": "AMD traffic signals completed work",
             "scene": "scene_2037",
@@ -519,6 +513,15 @@ CONFIG = {
             "scene": "scene_947",
             "modified_date_field": "field_2757",
             "socrata_resource_id": "f8dt-5n4w",
+        }
+    },
+    "transportation-engineering": {
+        "view_5059": {
+            "description": "Traffic count and data collection requests",
+            "scene": "scene_2049",
+            "modified_date_field": "field_2812",
+            "socrata_resource_id": "7qcz-v6sa",
+            "location_field_id": "field_5327"
         }
     }
 }
