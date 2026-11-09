@@ -3,7 +3,7 @@ CONFIG = {
         "issues": {
             "scene": "scene_514",
             "view": "view_2351",
-            "ref_obj": ["object_83"],
+            "object": "object_83",
             "due_date_field_id": "field_2772",
             "sr_field_id": "field_1232",
         },
@@ -30,6 +30,7 @@ CONFIG = {
             "ref_obj": ["object_172"],
             "sr_id_field": "field_3128",
             "flex_question_code_field_id": "field_3131",
+            "flex_attribute_value_id": "field_1453",
         },
     },
 }

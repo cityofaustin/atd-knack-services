@@ -59,6 +59,8 @@ def main(args):
         view=app_config["issues"]["view"],
     )
 
+    logging.info(f"{len(records)} found")
+
     for sr in records:
         filters = sr_filter(
             sr[app_config["issues"]["sr_field_id"]],
@@ -79,6 +81,7 @@ def main(args):
         )
 
         if not flex_note:
+            logging.info(f"No flex note found")
             continue
 
 
@@ -89,23 +92,20 @@ def main(args):
         due_date = format_due_date(
             flex_note[0].get(app_config["flex_notes"]["flex_attribute_value_id"])
         )
+        logging.info(f"Due date: {due_date}")
 
-        print(due_date)
+        record_update = {"id": sr["id"], app_config["issues"]["due_date_field_id"]: due_date}
+        print(record_update)
+        logging.info("Updating record...")
 
-        break
+        knackpy.api.record(
+            app_id=APP_ID,
+            api_key=API_KEY,
+            obj=app_config["issues"]["object"],
+            method="update",
+            data=record_update,
+        )
 
-
-
-
-        # record = {cfg["issues"]["due_date_field_id"]: due_date, "id": sr["id"]}
-
-        # res = knackpy.record(
-        #     record,
-        #     obj_key=cfg["issues"]["ref_obj"][0],
-        #     app_id=KNACK_CREDENTIALS[app_name]["app_id"],
-        #     api_key=KNACK_CREDENTIALS[app_name]["api_key"],
-        #     method="update",
-        # )
 
 
 if __name__ == "__main__":
