@@ -13,6 +13,7 @@ CONFIG = {
             "ref_obj": ["object_95"],
             "sr_id_field": "field_1452",
             "flex_question_code_field_id": "field_1455",
+            "flex_attribute_value_id": "field_1453",
         },
     },
     "signs_markings": {
