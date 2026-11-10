@@ -36,7 +36,7 @@ def format_due_date(date):
 
     Input format, e.g.: 'DEC 04, 2018'
     """
-    date_str = arrow.get(date, "MMM DD, YYYY").format("MM/DD/YYYY")
+    date_str = arrow.get(date, "MMM DD, YYYY").format("MM/DD/YYYY") if date else None
     return date_str
 
 
@@ -84,18 +84,15 @@ def main(args):
             logging.info(f"No flex note found")
             continue
 
-
-        """
-        Always take the first due date in the list. there are occasionally duplicate
-        due date flex records for one SR. We don't know why.
-        """
         due_date = format_due_date(
             flex_note[0].get(app_config["flex_notes"]["flex_attribute_value_id"])
         )
         logging.info(f"Due date: {due_date}")
 
+        if not due_date:
+            continue
+
         record_update = {"id": sr["id"], app_config["issues"]["due_date_field_id"]: due_date}
-        print(record_update)
         logging.info("Updating record...")
 
         knackpy.api.record(
