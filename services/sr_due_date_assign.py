@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+"""
+Queries service request records and looks for a corresponding due date from flex notes,
+updates the service request record with the due date.
+
+python sr_due_date_assign.py -a [app_name]
+
+"""
 import argparse
 import logging
 import os
