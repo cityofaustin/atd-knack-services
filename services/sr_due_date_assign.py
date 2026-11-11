@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 import logging
 import os
@@ -69,7 +70,7 @@ def main(args):
         )
 
         logging.info(
-            f"Looking up flex note for {sr[app_config["issues"]["sr_field_id"]]}"
+            f"Looking up flex note for {sr[app_config['issues']['sr_field_id']]}"
         )
 
         flex_note = knackpy.api.get(
