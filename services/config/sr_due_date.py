@@ -1,5 +1,5 @@
 CONFIG = {
-    "data_tracker": {
+    "data-tracker": {
         "issues": {
             "scene": "scene_514",
             "view": "view_2351",
@@ -16,7 +16,7 @@ CONFIG = {
             "flex_attribute_value_id": "field_1453",
         },
     },
-    "signs_markings": {
+    "signs-markings": {
         "issues": {
             "scene": "scene_1232",
             "view": "view_3059",

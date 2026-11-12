@@ -52,8 +52,8 @@ def main(args):
     app_name = args.app_name
     logging.info(app_name)
 
-    if app_name not in ["data_tracker", "signs_markings"]:
-        raise ValueError(f"{app_name} not data_tracker or signs_markings")
+    if app_name not in CONFIG.keys():
+        raise ValueError(f"{app_name} not found in config")
 
     for config_name in CONFIG.keys():
         if config_name == app_name:
@@ -112,14 +112,15 @@ def main(args):
         )
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-a",
         "--app-name",
         type=str,
-        help="str: Name of the Knack App, data_tracker or signs_markings",
+        required=True,
+        choices=list(CONFIG.keys()),
+        help=f"str: Name of the Knack App, one of: {', '.join(CONFIG)}",
     )
 
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
