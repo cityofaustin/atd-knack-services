@@ -415,6 +415,12 @@ CONFIG = {
                 },
             },
         },
+        "view_1472": {
+            "description": "Purchase request transactions",
+            "scene": "scene_562",
+            "modified_date_field": "field_74",
+            "socrata_resource_id": "hjh7-gbfv"
+        }
     },
     "smart-mobility": {
         "view_396": {
