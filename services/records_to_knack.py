@@ -95,7 +95,7 @@ def handle_records(data_src, data_dest, field_map, app_name_dest):
                 break
         if not matched:
             todos.append(mapped_record)
-    todos = remove_raw_tags(todos)
+    todos = remove_raw_tags(todos) if todos else todos
     return todos
 
 
