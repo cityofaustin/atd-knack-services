@@ -259,8 +259,14 @@ CONFIG = {
             "scene": "scene_2038",
             "modified_date_field": "field_4682",
             "socrata_resource_id": "cs6c-b6bz"
-
-        }
+        },
+        "view_5060": {
+            "description": "AMD Locations",
+            "scene": "scene_2046",
+            "modified_date_field": "",
+            "socrata_resource_id": "df22-6dur",
+            "location_field_id":"",
+        },
     },
     "signs-markings": {
         "view_3099": {
