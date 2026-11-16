@@ -17,8 +17,8 @@ ATD Knack Services is a set of python modules which automate the flow of data fr
   - [Knack Maintenance: 311 SR Auto Asset Assign](#knack-maintenance-311-sr-auto-asset-assign)
   - [Knack maintenance: Update location fields in Knack based on AGOL layers](#knack-maintenance-update-location-fields-in-knack-based-on-agol-layers)
   - [Knack maintenance: Street Segment Updater](#knack-maintenance-street-segment-updater)
-  - [Knack maintenance: Secondary Signals Updater](knack-maintenance-secondary-signals-updater)
-- [Utils](<#utils-(`/services/utils`)>)
+  - [Knack maintenance: Secondary Signals Updater](#knack-maintenance-secondary-signals-updater)
+- [Utils](<#utils-servicesutils>)
 - [Common Tasks](#common-tasks)
   - [Configure a Knack container](#configuring-a-knack-container)
   - [Dealing with Schema Changes](#dealing-with-schema-changes)
@@ -608,10 +608,6 @@ SECONDARY_SIGNALS = {
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the object or view key of the source container
 
-## Utils (`/services/utils`)
-
-The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
-
 ### Knack maintenance: Signal Preventative Maintenance Copier 
 
 Copies Preventative Maintenance (PM) records from primary signals to secondary signals.
@@ -634,11 +630,11 @@ CONFIG = {
 }
 ```
 
-
 #### CLI arguments
 
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the view key of the PM container
+
 
 ## Utils (`/services/utils`)
 
