@@ -13,8 +13,8 @@ def socrata_formatter_point(value):
             "type": "Point",
             "coordinates": [float(value["longitude"]), float(value["latitude"])],
         }
-    # if unable to format point, just return value
-    return value
+    # if unable to format point, return None
+    return None
 
 
 def socrata_formatter_multipoint(value):
