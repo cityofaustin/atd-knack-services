@@ -635,11 +635,23 @@ CONFIG = {
 - `--app-name, -a` (`str`, required): the name of the source Knack application
 - `--container, -c` (`str`, required): the view key of the PM container
 
+### Knack maintenance: Service Request due date assign
+
+Copies service request due date from flex notes to service request record.
+
+#### Configuration
+
+`/services/config/sr_due_date.py`
+Configuration defined for Data Tracker and Signs and Markings applications.
+
+#### CLI arguments
+
+- `--app-name, -a` (`str`, required): the name of the source Knack application
+
 
 ## Utils (`/services/utils`)
 
 The package contains utilities for fetching and pushing data between Knack applications and PostgREST.
-
 
 ## Common Tasks
 
