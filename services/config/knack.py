@@ -263,9 +263,9 @@ CONFIG = {
         "view_5060": {
             "description": "AMD Locations",
             "scene": "scene_2046",
-            "modified_date_field": "",
+            "modified_date_field": "field_508",
             "socrata_resource_id": "df22-6dur",
-            "location_field_id":"",
+            "location_field_id": "field_182",
         },
     },
     "signs-markings": {
