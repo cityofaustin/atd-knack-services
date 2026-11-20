@@ -4,17 +4,17 @@ import arrow
 def socrata_formatter_location(value):
     if not value:
         return value
-    return f"({ value['latitude']}, {value['longitude']})"
+    return f"({value['latitude']}, {value['longitude']})"
 
 
 def socrata_formatter_point(value):
-    if not value:
-        return value
-
-    return {
-        "type": "Point",
-        "coordinates": [float(value["longitude"]), float(value["latitude"])],
-    }
+    if value.get("longitude") and value.get("latitude"):
+        return {
+            "type": "Point",
+            "coordinates": [float(value["longitude"]), float(value["latitude"])],
+        }
+    # if unable to format point, return None
+    return None
 
 
 def socrata_formatter_multipoint(value):
